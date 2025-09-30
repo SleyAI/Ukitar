@@ -22,17 +22,11 @@ class ChordRecognitionService {
   Future<void> startListening() async {
     final PermissionStatus status = await Permission.microphone.request();
     if (!status.isGranted) {
-
       final bool requiresSettings =
           status.isPermanentlyDenied || status.isRestricted;
       throw MicrophonePermissionException(
         requiresSettings: requiresSettings,
       );
-
-
-      throw MicrophonePermissionException();
-
-
     }
 
     if (_isRecording) {
@@ -88,7 +82,4 @@ class MicrophonePermissionException implements Exception {
 
   final bool requiresSettings;
 }
-
-
-class MicrophonePermissionException implements Exception {}
 
