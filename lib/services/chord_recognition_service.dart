@@ -22,7 +22,15 @@ class ChordRecognitionService {
   Future<void> startListening() async {
     final PermissionStatus status = await Permission.microphone.request();
     if (!status.isGranted) {
+
+      final bool requiresSettings =
+          status.isPermanentlyDenied || status.isRestricted;
+      throw MicrophonePermissionException(
+        requiresSettings: requiresSettings,
+      );
+
       throw MicrophonePermissionException();
+
     }
 
     if (_isRecording) {
@@ -43,6 +51,11 @@ class ChordRecognitionService {
       }
     });
   }
+
+  Future<bool> openSystemSettings() {
+    return openAppSettings();
+  }
+
 
   Future<void> stopListening() async {
     if (!_isRecording) {
@@ -68,4 +81,12 @@ class ChordRecognitionService {
   }
 }
 
+
+class MicrophonePermissionException implements Exception {
+  MicrophonePermissionException({this.requiresSettings = false});
+
+  final bool requiresSettings;
+}
+
 class MicrophonePermissionException implements Exception {}
+

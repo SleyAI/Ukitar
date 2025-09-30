@@ -232,6 +232,20 @@ class _FeedbackCard extends StatelessWidget {
                 ),
               ],
             ),
+
+            if (model.showOpenSettingsButton) ...<Widget>[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () => unawaited(model.openSystemSettings()),
+                icon: const Icon(Icons.settings),
+                label: const Text('Open Settings'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: foregroundColor,
+                  side: BorderSide(color: foregroundColor.withOpacity(0.4)),
+                ),
+              ),
+            ],
+
             const SizedBox(height: 16),
             if (model.latestFrequency != null)
               Text(
