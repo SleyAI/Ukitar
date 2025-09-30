@@ -32,6 +32,10 @@ class _PracticeScreenState extends State<PracticeScreen> {
       body: Consumer<PracticeViewModel>(
         builder: (BuildContext context, PracticeViewModel model, _) {
           final ColorScheme colorScheme = Theme.of(context).colorScheme;
+          final TextTheme textTheme = Theme.of(context).textTheme;
+          final Color primaryTextColor = colorScheme.onSurface;
+          final Color secondaryTextColor = colorScheme.onSurfaceVariant;
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -39,7 +43,9 @@ class _PracticeScreenState extends State<PracticeScreen> {
               children: <Widget>[
                 Text(
                   'Beginner progression',
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: textTheme.titleMedium?.copyWith(
+                    color: primaryTextColor,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Wrap(
@@ -69,14 +75,17 @@ class _PracticeScreenState extends State<PracticeScreen> {
                       children: <Widget>[
                         Text(
                           model.currentChord.name,
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: primaryTextColor,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           model.currentChord.description,
-                          style: Theme.of(context).textTheme.bodyMedium,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: secondaryTextColor,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         Center(
@@ -85,7 +94,9 @@ class _PracticeScreenState extends State<PracticeScreen> {
                         const SizedBox(height: 16),
                         Text(
                           'Tips',
-                          style: Theme.of(context).textTheme.titleMedium,
+                          style: textTheme.titleMedium?.copyWith(
+                            color: primaryTextColor,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         ...model.currentChord.tips.map(
@@ -94,14 +105,19 @@ class _PracticeScreenState extends State<PracticeScreen> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                const Text('•  '),
+                                Text(
+                                  '•  ',
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: secondaryTextColor,
+                                  ),
+                                ),
                                 Expanded(
                                   child: Text(
                                     tip,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(height: 1.4),
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      height: 1.4,
+                                      color: secondaryTextColor,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -168,9 +184,9 @@ class _ChordChip extends StatelessWidget {
             Text(
               chordName,
               style: theme.textTheme.bodyMedium?.copyWith(
-              color: selected
-                  ? theme.colorScheme.onPrimary
-                  : theme.colorScheme.onSurface,
+                color: selected
+                    ? theme.colorScheme.onPrimary
+                    : theme.colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
               ),
             ),
