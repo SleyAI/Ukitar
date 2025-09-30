@@ -10,9 +10,6 @@ class PracticeViewModel extends ChangeNotifier {
   PracticeViewModel(this._chordRecognitionService)
       : chords = ChordLibrary.beginnerCourse() {
     _frequencySubscription =
-
-    _frequencySub =
-
         _chordRecognitionService.frequencyStream.listen(_handleFrequency);
   }
 
@@ -20,8 +17,6 @@ class PracticeViewModel extends ChangeNotifier {
   final List<Chord> chords;
 
   late final StreamSubscription<double> _frequencySubscription;
-
-  late final StreamSubscription<double> _frequencySub;
 
 
   int unlockedChords = 1;
@@ -52,28 +47,11 @@ class PracticeViewModel extends ChangeNotifier {
     try {
       await _chordRecognitionService.startListening();
       isListening = true;
-
-
-    notifyListeners();
-    try {
-      await _chordRecognitionService.startListening();
-      isListening = true;
-
     } on MicrophonePermissionException catch (error) {
       showOpenSettingsButton = error.requiresSettings;
       statusMessage = error.requiresSettings
           ? 'Microphone access is disabled. Enable it in Settings to continue.'
           : 'Microphone permission is required to listen.';
-
-    } catch (error) {
-      statusMessage = 'Could not access the microphone: $error';
-    }
-
-
-
-    } on MicrophonePermissionException {
-      statusMessage = 'Microphone permission is required to listen.';
-
     } catch (error) {
       statusMessage = 'Could not access the microphone: $error';
     }
@@ -113,22 +91,10 @@ class PracticeViewModel extends ChangeNotifier {
     }
   }
 
-
-
-    notifyListeners();
-  }
-
-
-
   void selectChord(int index) {
     if (index >= unlockedChords) {
       return;
     }
-
-    if (isListening) {
-      unawaited(stopListening(silent: true));
-    }
-
 
     if (isListening) {
       unawaited(stopListening(silent: true));
@@ -146,9 +112,6 @@ class PracticeViewModel extends ChangeNotifier {
   void dispose() {
     unawaited(_chordRecognitionService.dispose());
     unawaited(_frequencySubscription.cancel());
-
-    unawaited(_frequencySub.cancel());
-
     super.dispose();
   }
 
