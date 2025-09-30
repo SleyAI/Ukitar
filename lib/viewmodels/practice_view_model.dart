@@ -26,6 +26,7 @@ class PracticeViewModel extends ChangeNotifier {
   String statusMessage = 'Ready to practise';
   bool showOpenSettingsButton = false;
 
+
   double? latestFrequency;
   final Set<int> _matchedStrings = <int>{};
 
@@ -40,15 +41,21 @@ class PracticeViewModel extends ChangeNotifier {
     statusMessage = 'Listening... strum your ${currentChord.name} chord';
     _matchedStrings.clear();
     showOpenSettingsButton = false;
+
     notifyListeners();
     try {
       await _chordRecognitionService.startListening();
       isListening = true;
+
     } on MicrophonePermissionException catch (error) {
       showOpenSettingsButton = error.requiresSettings;
       statusMessage = error.requiresSettings
           ? 'Microphone access is disabled. Enable it in Settings to continue.'
           : 'Microphone permission is required to listen.';
+
+    } on MicrophonePermissionException {
+      statusMessage = 'Microphone permission is required to listen.';
+
     } catch (error) {
       statusMessage = 'Could not access the microphone: $error';
     }
@@ -71,6 +78,7 @@ class PracticeViewModel extends ChangeNotifier {
     statusMessage = 'Reset. Tap “Start Listening” when ready.';
     _matchedStrings.clear();
     latestFrequency = null;
+
     showOpenSettingsButton = false;
     notifyListeners();
   }
@@ -83,6 +91,11 @@ class PracticeViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+
+    notifyListeners();
+  }
+
 
   void selectChord(int index) {
     if (index >= unlockedChords) {
