@@ -1,3 +1,5 @@
+import groovy.xml.XmlSlurper
+
 allprojects {
     repositories {
         google()
@@ -11,6 +13,30 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+}
+
+subprojects { project ->
+    project.afterEvaluate {
+        def isAndroidLib = project.plugins.hasPlugin("com.android.library")
+        if (!isAndroidLib) {
+            return
+        }
+
+        def hasNamespace = project.android.hasProperty("namespace") && project.android.namespace
+        if (hasNamespace) {
+            return
+        }
+
+        def manifestFile = project.file("src/main/AndroidManifest.xml")
+        if (!manifestFile.exists()) {
+            return
+        }
+
+        def manifestPackage = new XmlSlurper().parse(manifestFile).@package?.text()
+        if (manifestPackage) {
+            project.android.namespace = manifestPackage
+        }
+    }
 }
 
 tasks.register("clean", Delete) {
