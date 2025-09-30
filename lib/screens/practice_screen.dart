@@ -232,6 +232,7 @@ class _FeedbackCard extends StatelessWidget {
                 ),
               ],
             ),
+
             if (model.showOpenSettingsButton) ...<Widget>[
               const SizedBox(height: 12),
               OutlinedButton.icon(
@@ -244,6 +245,7 @@ class _FeedbackCard extends StatelessWidget {
                 ),
               ),
             ],
+
             const SizedBox(height: 16),
             if (model.latestFrequency != null)
               Text(

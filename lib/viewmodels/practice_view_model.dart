@@ -10,6 +10,9 @@ class PracticeViewModel extends ChangeNotifier {
   PracticeViewModel(this._chordRecognitionService)
       : chords = ChordLibrary.beginnerCourse() {
     _frequencySubscription =
+
+    _frequencySub =
+
         _chordRecognitionService.frequencyStream.listen(_handleFrequency);
   }
 
@@ -18,6 +21,9 @@ class PracticeViewModel extends ChangeNotifier {
 
   late final StreamSubscription<double> _frequencySubscription;
 
+  late final StreamSubscription<double> _frequencySub;
+
+
   int unlockedChords = 1;
   int currentChordIndex = 0;
 
@@ -25,6 +31,7 @@ class PracticeViewModel extends ChangeNotifier {
   bool? lastAttemptSuccessful;
   String statusMessage = 'Ready to practise';
   bool showOpenSettingsButton = false;
+
 
   double? latestFrequency;
   final Set<int> _matchedStrings = <int>{};
@@ -45,11 +52,28 @@ class PracticeViewModel extends ChangeNotifier {
     try {
       await _chordRecognitionService.startListening();
       isListening = true;
+
+
+    notifyListeners();
+    try {
+      await _chordRecognitionService.startListening();
+      isListening = true;
+
     } on MicrophonePermissionException catch (error) {
       showOpenSettingsButton = error.requiresSettings;
       statusMessage = error.requiresSettings
           ? 'Microphone access is disabled. Enable it in Settings to continue.'
           : 'Microphone permission is required to listen.';
+
+    } catch (error) {
+      statusMessage = 'Could not access the microphone: $error';
+    }
+
+
+
+    } on MicrophonePermissionException {
+      statusMessage = 'Microphone permission is required to listen.';
+
     } catch (error) {
       statusMessage = 'Could not access the microphone: $error';
     }
@@ -75,6 +99,7 @@ class PracticeViewModel extends ChangeNotifier {
     statusMessage = 'Reset. Tap "Start Listening" when ready.';
     _matchedStrings.clear();
     latestFrequency = null;
+
     showOpenSettingsButton = false;
     notifyListeners();
   }
@@ -88,10 +113,22 @@ class PracticeViewModel extends ChangeNotifier {
     }
   }
 
+
+
+    notifyListeners();
+  }
+
+
+
   void selectChord(int index) {
     if (index >= unlockedChords) {
       return;
     }
+
+    if (isListening) {
+      unawaited(stopListening(silent: true));
+    }
+
 
     if (isListening) {
       unawaited(stopListening(silent: true));
@@ -109,6 +146,9 @@ class PracticeViewModel extends ChangeNotifier {
   void dispose() {
     unawaited(_chordRecognitionService.dispose());
     unawaited(_frequencySubscription.cancel());
+
+    unawaited(_frequencySub.cancel());
+
     super.dispose();
   }
 
@@ -141,6 +181,7 @@ class PracticeViewModel extends ChangeNotifier {
       statusMessage =
           'Awesome! ${currentChord.name} is next. Tap "Start Listening".';
     }
+
 
     _matchedStrings.clear();
     latestFrequency = null;
