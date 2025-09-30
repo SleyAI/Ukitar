@@ -9,14 +9,20 @@ import '../services/chord_recognition_service.dart';
 class PracticeViewModel extends ChangeNotifier {
   PracticeViewModel(this._chordRecognitionService)
       : chords = ChordLibrary.beginnerCourse() {
+    _frequencySubscription =
+
     _frequencySub =
+
         _chordRecognitionService.frequencyStream.listen(_handleFrequency);
   }
 
   final ChordRecognitionService _chordRecognitionService;
   final List<Chord> chords;
 
+  late final StreamSubscription<double> _frequencySubscription;
+
   late final StreamSubscription<double> _frequencySub;
+
 
   int unlockedChords = 1;
   int currentChordIndex = 0;
@@ -41,6 +47,12 @@ class PracticeViewModel extends ChangeNotifier {
     statusMessage = 'Listening... strum your ${currentChord.name} chord';
     _matchedStrings.clear();
     showOpenSettingsButton = false;
+    notifyListeners();
+
+    try {
+      await _chordRecognitionService.startListening();
+      isListening = true;
+
 
     notifyListeners();
     try {
@@ -53,29 +65,38 @@ class PracticeViewModel extends ChangeNotifier {
           ? 'Microphone access is disabled. Enable it in Settings to continue.'
           : 'Microphone permission is required to listen.';
 
+    } catch (error) {
+      statusMessage = 'Could not access the microphone: $error';
+    }
+
+
+
     } on MicrophonePermissionException {
       statusMessage = 'Microphone permission is required to listen.';
 
     } catch (error) {
       statusMessage = 'Could not access the microphone: $error';
     }
+
     notifyListeners();
   }
 
   Future<void> stopListening({bool silent = false}) async {
     await _chordRecognitionService.stopListening();
     isListening = false;
+
     if (!silent && lastAttemptSuccessful == null && _matchedStrings.isNotEmpty) {
       lastAttemptSuccessful = false;
       statusMessage = 'Almost! Try strumming again.';
     }
+
     notifyListeners();
   }
 
   Future<void> resetAttempt() async {
     await stopListening(silent: true);
     lastAttemptSuccessful = null;
-    statusMessage = 'Reset. Tap “Start Listening” when ready.';
+    statusMessage = 'Reset. Tap "Start Listening" when ready.';
     _matchedStrings.clear();
     latestFrequency = null;
 
@@ -93,17 +114,26 @@ class PracticeViewModel extends ChangeNotifier {
   }
 
 
+
     notifyListeners();
   }
+
 
 
   void selectChord(int index) {
     if (index >= unlockedChords) {
       return;
     }
+
     if (isListening) {
       unawaited(stopListening(silent: true));
     }
+
+
+    if (isListening) {
+      unawaited(stopListening(silent: true));
+    }
+
     currentChordIndex = index;
     statusMessage = 'Ready for ${currentChord.name}';
     _matchedStrings.clear();
@@ -115,13 +145,17 @@ class PracticeViewModel extends ChangeNotifier {
   @override
   void dispose() {
     unawaited(_chordRecognitionService.dispose());
+    unawaited(_frequencySubscription.cancel());
+
     unawaited(_frequencySub.cancel());
+
     super.dispose();
   }
 
   void _handleFrequency(double frequency) {
     latestFrequency = frequency;
     final int? matchedString = currentChord.matchFrequency(frequency);
+
     if (matchedString != null) {
       final bool isNew = _matchedStrings.add(matchedString);
       if (isNew) {
@@ -132,6 +166,7 @@ class PracticeViewModel extends ChangeNotifier {
         }
       }
     }
+
     notifyListeners();
   }
 
@@ -144,8 +179,10 @@ class PracticeViewModel extends ChangeNotifier {
       unlockedChords++;
       currentChordIndex = unlockedChords - 1;
       statusMessage =
-          'Awesome! ${currentChord.name} is next. Tap “Start Listening”.';
+          'Awesome! ${currentChord.name} is next. Tap "Start Listening".';
     }
+
+
     _matchedStrings.clear();
     latestFrequency = null;
     notifyListeners();

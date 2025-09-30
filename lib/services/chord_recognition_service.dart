@@ -29,7 +29,9 @@ class ChordRecognitionService {
         requiresSettings: requiresSettings,
       );
 
+
       throw MicrophonePermissionException();
+
 
     }
 
@@ -55,7 +57,6 @@ class ChordRecognitionService {
   Future<bool> openSystemSettings() {
     return openAppSettings();
   }
-
 
   Future<void> stopListening() async {
     if (!_isRecording) {
@@ -87,6 +88,7 @@ class MicrophonePermissionException implements Exception {
 
   final bool requiresSettings;
 }
+
 
 class MicrophonePermissionException implements Exception {}
 
