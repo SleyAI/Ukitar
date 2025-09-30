@@ -50,7 +50,7 @@ class PracticeViewModel extends ChangeNotifier {
     } on MicrophonePermissionException catch (error) {
       showOpenSettingsButton = error.requiresSettings;
       statusMessage = error.requiresSettings
-          ? 'Microphone access is disabled. Enable it in Settings to continue.'
+          ? 'Microphone access is disabled. Tap below to grant permission.'
           : 'Microphone permission is required to listen.';
     } catch (error) {
       statusMessage = 'Could not access the microphone: $error';
@@ -83,12 +83,15 @@ class PracticeViewModel extends ChangeNotifier {
   }
 
   Future<void> openSystemSettings() async {
-    final bool opened = await _chordRecognitionService.openSystemSettings();
-    if (!opened) {
+    final bool granted = await _chordRecognitionService.openSystemSettings();
+    if (granted) {
+      showOpenSettingsButton = false;
+      statusMessage = 'Microphone access granted. Tap "Start Listening" to continue.';
+    } else {
       statusMessage =
-          'Unable to open Settings. Please enable the microphone manually.';
-      notifyListeners();
+          'Microphone permission is still disabled. Please enable it to continue.';
     }
+    notifyListeners();
   }
 
   void selectChord(int index) {

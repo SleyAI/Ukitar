@@ -48,8 +48,9 @@ class ChordRecognitionService {
     });
   }
 
-  Future<bool> openSystemSettings() {
-    return openAppSettings();
+  Future<bool> openSystemSettings() async {
+    final PermissionStatus status = await Permission.microphone.request();
+    return status.isGranted || status.isLimited;
   }
 
   Future<void> stopListening() async {
