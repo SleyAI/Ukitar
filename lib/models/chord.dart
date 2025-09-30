@@ -61,6 +61,8 @@ class Chord {
     final _StringTuning tuning = _stringTunings[stringIndex];
     final int midi = tuning.midi + fret;
     final double frequency = 440.0 * pow(2, (midi - 69) / 12).toDouble();
+
+
     return ChordNote(
       stringIndex: stringIndex,
       midi: midi,
