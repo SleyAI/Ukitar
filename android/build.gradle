@@ -16,12 +16,7 @@ subprojects {
 }
 
 subprojects { project ->
-    project.afterEvaluate {
-        def isAndroidLib = project.plugins.hasPlugin("com.android.library")
-        if (!isAndroidLib) {
-            return
-        }
-
+    project.plugins.withId("com.android.library") {
         def hasNamespace = project.android.hasProperty("namespace") && project.android.namespace
         if (hasNamespace) {
             return
