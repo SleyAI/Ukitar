@@ -1,16 +1,31 @@
-# ukitar
+# Ukitar
 
-A new Flutter project.
+Ukitar is a Flutter-based guitar practice companion that performs pitch
+detection to help you tune and practise chords.
 
-## Getting Started
+## Requirements
 
-This project is a starting point for a Flutter application.
+- Flutter 3.6 or newer
+- Dart SDK 3.6 or newer (bundled with Flutter)
+- An Android device running Android 6.0 (API 23) or newer for on-device testing
 
-A few resources to get you started if this is your first Flutter project:
+## Running the app on Android
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+1. Ensure that you have installed the [Android platform
+   dependencies](https://docs.flutter.dev/get-started/install) for Flutter and
+   enabled USB debugging on your device.
+2. Connect your device via USB (or ensure that it is discoverable over Wi-Fi).
+3. Run `flutter devices` to verify that Flutter can detect your Android device.
+4. Launch the application on the device with `flutter run -d <device-id>`.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Microphone permission
+
+Ukitar relies on live audio input to provide chord and tuning feedback. On
+Android you will be prompted to grant microphone access the first time you open
+the app. If you previously denied the permission, you can enable it manually via
+**Settings → Apps → Ukitar → Permissions**.
+
+## Additional resources
+
+- [Flutter documentation](https://docs.flutter.dev/)
+- [Flutter cookbook](https://docs.flutter.dev/cookbook)
