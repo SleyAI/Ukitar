@@ -237,8 +237,8 @@ class _FeedbackCard extends StatelessWidget {
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: () => unawaited(model.openSystemSettings()),
-                icon: const Icon(Icons.settings),
-                label: const Text('Open Settings'),
+                icon: const Icon(Icons.mic),
+                label: const Text('Grant Microphone Access'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: foregroundColor,
                   side: BorderSide(color: foregroundColor.withOpacity(0.4)),
