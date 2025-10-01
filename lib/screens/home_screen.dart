@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:ukitar/utils/url_opener.dart';
+
 import 'practice_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -22,6 +24,13 @@ class HomeScreen extends StatelessWidget {
                 color: theme.colorScheme.onSurface,
               ),
             ),
+            const SizedBox(height: 8),
+            Text(
+              'by awiealissa',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 16),
             Text(
               'Learn your first ukulele chords with guided practice and real-time feedback.',
@@ -29,17 +38,11 @@ class HomeScreen extends StatelessWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const Spacer(),
+            const SizedBox(height: 32),
             _FeatureBullet(
               icon: Icons.auto_graph,
               title: 'Step-by-step course',
               description: 'Unlock new chords only after mastering the basics.',
-            ),
-            const SizedBox(height: 16),
-            _FeatureBullet(
-              icon: Icons.mic,
-              title: 'Microphone feedback',
-              description: 'Your ukulele is the controller—strum to progress.',
             ),
             const Spacer(),
             SizedBox(
@@ -59,9 +62,43 @@ class HomeScreen extends StatelessWidget {
                 child: const Text('Start Practice'),
               ),
             ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton.icon(
+                onPressed: () => _openYoutubeChannel(context),
+                icon: const Icon(Icons.play_circle_fill),
+                label: const Text('Watch awiealissa on YouTube'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.colorScheme.primary,
+                  textStyle: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            _FeatureBullet(
+              icon: Icons.mic,
+              title: 'Microphone feedback',
+              description: 'Your ukulele is the controller—strum to progress.',
+            ),
             const SizedBox(height: 24),
           ],
         ),
+      ),
+    );
+  }
+}
+
+Future<void> _openYoutubeChannel(BuildContext context) async {
+  const String url = 'https://www.youtube.com/@awiealissa';
+  final bool opened = await openExternalUrl(url);
+  if (!opened) {
+    final ScaffoldMessengerState? messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.showSnackBar(
+      const SnackBar(
+        content: Text('Unable to open the YouTube channel right now.'),
       ),
     );
   }
