@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../utils/url_opener.dart';
 import '../viewmodels/practice_view_model.dart';
 import '../widgets/chord_diagram.dart';
 
@@ -122,6 +123,50 @@ class _PracticeScreenState extends State<PracticeScreen> {
                                 ),
                               ],
                             ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                '•  ',
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: secondaryTextColor,
+                                ),
+                              ),
+                              Expanded(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: <Widget>[
+                                    Expanded(
+                                      child: Text(
+                                        'Do you need additional help? Check out the explanation by awiealissa',
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          height: 1.4,
+                                          color: secondaryTextColor,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Watch on YouTube',
+                                      onPressed: () {
+                                        unawaited(
+                                          openExternalUrl(
+                                            'https://www.youtube.com/watch?v=MLuYBcEVlYs',
+                                          ),
+                                        );
+                                      },
+                                      icon: Icon(
+                                        Icons.ondemand_video,
+                                        color: colorScheme.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
