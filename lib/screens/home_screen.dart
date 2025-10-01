@@ -19,7 +19,7 @@ class HomeScreen extends StatelessWidget {
               'Ukitar',
               style: theme.textTheme.displaySmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: theme.colorScheme.primary,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 16),
