@@ -19,19 +19,33 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             const SizedBox(height: 64),
-            Text(
-              'Ukitar',
-              style: theme.textTheme.displaySmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'by awiealissa',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'Ukitar',
+                        style: theme.textTheme.displaySmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'by awiealissa',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                const _HomeIllustration(),
+              ],
             ),
             const SizedBox(height: 16),
             Text(
@@ -166,6 +180,26 @@ class _FeatureBullet extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _HomeIllustration extends StatelessWidget {
+  const _HomeIllustration();
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final double titleHeight = theme.textTheme.displaySmall?.fontSize ?? 0;
+    final double subtitleHeight = theme.textTheme.titleMedium?.fontSize ?? 0;
+    const double spacing = 8;
+    final double computedHeight = titleHeight + subtitleHeight + spacing;
+    final double imageHeight = computedHeight > 0 ? computedHeight : 120;
+
+    return Image.asset(
+      'images/ukulele.png',
+      height: imageHeight,
+      fit: BoxFit.contain,
     );
   }
 }
