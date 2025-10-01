@@ -70,6 +70,24 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute<void>(
+                    builder: (BuildContext context) => const PracticeScreen(),
+                  ));
+                },
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  textStyle: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                child: const Text('Start Exercise'),
+              ),
+            ),
+            const SizedBox(height: 12),
             Center(
               child: FilledButton.icon(
                 onPressed: () => _openYoutubeChannel(context),
@@ -78,7 +96,6 @@ class HomeScreen extends StatelessWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: _youtubeRed,
                   foregroundColor: Colors.white,
-
                   textStyle: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -97,13 +114,13 @@ Future<void> _openYoutubeChannel(BuildContext context) async {
   const String url = 'https://www.youtube.com/@awiealissa';
   final bool opened = await openExternalUrl(url);
   if (!opened) {
-    final ScaffoldMessengerState? messenger = ScaffoldMessenger.maybeOf(context);
+    final ScaffoldMessengerState? messenger =
+        ScaffoldMessenger.maybeOf(context);
     messenger?.showSnackBar(
       const SnackBar(
         content: Text('Unable to open the YouTube channel right now.'),
       ),
     );
-
   }
 }
 
