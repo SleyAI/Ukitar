@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import 'package:ukitar/utils/url_opener.dart';
 
 import 'practice_screen.dart';
