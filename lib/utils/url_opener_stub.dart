@@ -1,12 +1,16 @@
-import 'package:flutter/services.dart';
-
-const MethodChannel _channel = MethodChannel('ukitar.external_launcher');
+import 'package:url_launcher/url_launcher.dart';
 
 Future<bool> openExternalUrl(String url) async {
-  try {
-    final bool? opened = await _channel.invokeMethod<bool>('openUrl', url);
-    return opened ?? false;
-  } on PlatformException {
+  final Uri? uri = Uri.tryParse(url);
+  if (uri == null) {
     return false;
   }
+
+  // Try launching outside the app when possible (e.g., dedicated app or browser).
+  if (await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+    return true;
+  }
+
+  // Fallback to the platform default behaviour.
+  return launchUrl(uri, mode: LaunchMode.platformDefault);
 }
