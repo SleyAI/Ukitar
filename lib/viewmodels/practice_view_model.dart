@@ -88,7 +88,7 @@ class PracticeViewModel extends ChangeNotifier {
   Future<void> resetAttempt() async {
     await stopListening(silent: true);
     lastAttemptSuccessful = null;
-    statusMessage = 'Reset. Tap "Start Listening" when ready.';
+    statusMessage = 'Tap "Start Listening" when ready.';
     _matchedStrings.clear();
     latestFrequency = null;
     completedRepetitions = 0;
