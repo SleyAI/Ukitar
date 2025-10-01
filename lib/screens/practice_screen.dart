@@ -211,6 +211,9 @@ class _FeedbackCard extends StatelessWidget {
     Color foregroundColor = colors.onSurface;
     IconData statusIcon = Icons.hearing;
 
+    final double progress =
+        model.repetitionProgress.clamp(0.0, 1.0).toDouble();
+
     if (model.lastAttemptSuccessful == true) {
       statusColor = colors.secondaryContainer;
       foregroundColor = colors.onSecondaryContainer;
@@ -247,6 +250,25 @@ class _FeedbackCard extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+
+            const SizedBox(height: 12),
+            Text(
+              'Clean strums: ${model.completedRepetitions}/${model.requiredRepetitions}',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: foregroundColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 6,
+                backgroundColor: foregroundColor.withOpacity(0.2),
+                color: colors.primary,
+              ),
             ),
 
             if (model.showOpenSettingsButton) ...<Widget>[

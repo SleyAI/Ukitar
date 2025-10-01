@@ -30,6 +30,12 @@ class PracticeViewModel extends ChangeNotifier {
 
   double? latestFrequency;
   final Set<int> _matchedStrings = <int>{};
+  Timer? _attemptTimer;
+
+  static const Duration _attemptTimeout = Duration(milliseconds: 1500);
+  static const int repetitionsRequired = 5;
+
+  int completedRepetitions = 0;
 
   Chord get currentChord => chords[currentChordIndex];
 
@@ -37,9 +43,15 @@ class PracticeViewModel extends ChangeNotifier {
 
   List<int> get matchedStrings => _matchedStrings.toList(growable: false);
 
+  int get requiredRepetitions => repetitionsRequired;
+
+  double get repetitionProgress =>
+      completedRepetitions / repetitionsRequired;
+
   Future<void> startListening() async {
     lastAttemptSuccessful = null;
-    statusMessage = 'Listening... strum your ${currentChord.name} chord';
+    statusMessage =
+        'Listening... strum your ${currentChord.name} chord (${completedRepetitions + 1}/$repetitionsRequired)';
     _matchedStrings.clear();
     showOpenSettingsButton = false;
     notifyListeners();
@@ -62,10 +74,12 @@ class PracticeViewModel extends ChangeNotifier {
   Future<void> stopListening({bool silent = false}) async {
     await _chordRecognitionService.stopListening();
     isListening = false;
+    _attemptTimer?.cancel();
+    _attemptTimer = null;
 
     if (!silent && lastAttemptSuccessful == null && _matchedStrings.isNotEmpty) {
       lastAttemptSuccessful = false;
-      statusMessage = 'Almost! Try strumming again.';
+      statusMessage = 'Almost! Try strumming all strings together.';
     }
 
     notifyListeners();
@@ -77,6 +91,9 @@ class PracticeViewModel extends ChangeNotifier {
     statusMessage = 'Reset. Tap "Start Listening" when ready.';
     _matchedStrings.clear();
     latestFrequency = null;
+    completedRepetitions = 0;
+    _attemptTimer?.cancel();
+    _attemptTimer = null;
 
     showOpenSettingsButton = false;
     notifyListeners();
@@ -104,10 +121,14 @@ class PracticeViewModel extends ChangeNotifier {
     }
 
     currentChordIndex = index;
-    statusMessage = 'Ready for ${currentChord.name}';
+    statusMessage =
+        'Ready for ${currentChord.name}. Strum it $repetitionsRequired times to unlock the next chord.';
     _matchedStrings.clear();
     latestFrequency = null;
     lastAttemptSuccessful = null;
+    completedRepetitions = 0;
+    _attemptTimer?.cancel();
+    _attemptTimer = null;
     notifyListeners();
   }
 
@@ -115,6 +136,7 @@ class PracticeViewModel extends ChangeNotifier {
   void dispose() {
     unawaited(_chordRecognitionService.dispose());
     unawaited(_frequencySubscription.cancel());
+    _attemptTimer?.cancel();
     super.dispose();
   }
 
@@ -125,10 +147,11 @@ class PracticeViewModel extends ChangeNotifier {
     if (matchedString != null) {
       final bool isNew = _matchedStrings.add(matchedString);
       if (isNew) {
+        _restartAttemptTimer();
         statusMessage =
             'Heard ${currentChord.stringLabel(matchedString)} string (${currentChord.notes[matchedString].noteName})';
         if (_matchedStrings.length >= activeStringCount) {
-          _completeChord();
+          _registerSuccessfulStrum();
         }
       }
     }
@@ -136,18 +159,52 @@ class PracticeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _completeChord() async {
-    lastAttemptSuccessful = true;
-    statusMessage = 'Beautiful! ${currentChord.name} unlocked.';
-    await stopListening(silent: true);
+  void _restartAttemptTimer() {
+    _attemptTimer?.cancel();
+    _attemptTimer = Timer(_attemptTimeout, _handleAttemptTimeout);
+  }
 
-    if (unlockedChords < chords.length) {
-      unlockedChords++;
-      currentChordIndex = unlockedChords - 1;
-      statusMessage =
-          'Awesome! ${currentChord.name} is next. Tap "Start Listening".';
+  void _handleAttemptTimeout() {
+    _attemptTimer = null;
+    if (_matchedStrings.isEmpty) {
+      return;
     }
+    _matchedStrings.clear();
+    if (isListening) {
+      lastAttemptSuccessful = false;
+      statusMessage =
+          'Almost! Try strumming the full ${currentChord.name} chord again.';
+      notifyListeners();
+    }
+  }
 
+  void _registerSuccessfulStrum() {
+    _attemptTimer?.cancel();
+    _attemptTimer = null;
+
+    final Chord chord = currentChord;
+    completedRepetitions++;
+    lastAttemptSuccessful = true;
+
+    if (completedRepetitions >= repetitionsRequired) {
+      final bool hasMoreChords = unlockedChords < chords.length;
+      unawaited(stopListening(silent: true));
+
+      if (hasMoreChords) {
+        unlockedChords++;
+        currentChordIndex = unlockedChords - 1;
+        final String nextChordName = currentChord.name;
+        completedRepetitions = 0;
+        statusMessage =
+            'Fantastic! You nailed $repetitionsRequired clean strums of ${chord.name}. Next up: $nextChordName. Tap "Start Listening" when ready.';
+      } else {
+        statusMessage =
+            'Amazing! You mastered every chord in the course.';
+      }
+    } else {
+      statusMessage =
+          'Great! ${chord.name}: $completedRepetitions/$repetitionsRequired clean strums.';
+    }
 
     _matchedStrings.clear();
     latestFrequency = null;
