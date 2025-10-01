@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:ukitar/utils/url_opener.dart';
+
 import 'practice_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -65,7 +67,8 @@ class HomeScreen extends StatelessWidget {
             Align(
               alignment: Alignment.centerLeft,
               child: OutlinedButton.icon(
-                onPressed: _openYoutubeChannel,
+                onPressed: () => _openYoutubeChannel(context),
+
                 icon: const Icon(Icons.play_circle_fill),
                 label: const Text('Watch awiealissa on YouTube'),
                 style: OutlinedButton.styleFrom(
@@ -90,10 +93,17 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-Future<void> _openYoutubeChannel() async {
-  final Uri uri = Uri.parse('https://www.youtube.com/@awiealissa');
-  if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-    throw 'Could not launch $uri';
+Future<void> _openYoutubeChannel(BuildContext context) async {
+  const String url = 'https://www.youtube.com/@awiealissa';
+  final bool opened = await openExternalUrl(url);
+  if (!opened) {
+    final ScaffoldMessengerState? messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.showSnackBar(
+      const SnackBar(
+        content: Text('Unable to open the YouTube channel right now.'),
+      ),
+    );
+
   }
 }
 
