@@ -32,6 +32,7 @@ class ExerciseViewModel extends ChangeNotifier {
   bool? lastAttemptSuccessful;
   bool showOpenSettingsButton = false;
   bool isPreparingNextChord = false;
+  bool isChordPatternVisible = false;
 
   String statusMessage = 'Press "Start Listening" to begin.';
 
@@ -83,6 +84,7 @@ class ExerciseViewModel extends ChangeNotifier {
     await stopListening(silent: true);
     lastAttemptSuccessful = null;
     isPreparingNextChord = false;
+    isChordPatternVisible = false;
     statusMessage =
         'Ready when you are. Press "Start Listening" and strum ${currentChord.name}.';
     _matchedStrings.clear();
@@ -92,6 +94,11 @@ class ExerciseViewModel extends ChangeNotifier {
   Future<void> skipToNextChord() async {
     await stopListening(silent: true);
     _prepareNextChord();
+  }
+
+  void toggleChordPatternVisibility() {
+    isChordPatternVisible = !isChordPatternVisible;
+    notifyListeners();
   }
 
   Future<void> openSystemSettings() async {
@@ -135,6 +142,7 @@ class ExerciseViewModel extends ChangeNotifier {
     _matchedStrings.clear();
     lastAttemptSuccessful = null;
     isPreparingNextChord = false;
+    isChordPatternVisible = false;
     statusMessage =
         'Try strumming ${currentChord.name}. Press "Start Listening" when ready.';
 
