@@ -25,7 +25,9 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'Learn your first ukulele chords with guided practice and real-time feedback.',
-              style: theme.textTheme.titleMedium,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
             const Spacer(),
             _FeatureBullet(
@@ -92,6 +94,7 @@ class _FeatureBullet extends StatelessWidget {
                 title,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 4),
