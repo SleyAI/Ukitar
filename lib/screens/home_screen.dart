@@ -3,6 +3,8 @@ import 'package:ukitar/utils/url_opener.dart';
 
 import 'practice_screen.dart';
 
+const Color _youtubeRed = Color(0xFFFF0000);
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -68,15 +70,14 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: OutlinedButton.icon(
+            Center(
+              child: FilledButton.icon(
                 onPressed: () => _openYoutubeChannel(context),
-
                 icon: const Icon(Icons.play_circle_fill),
                 label: const Text('Watch awiealissa on YouTube'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.colorScheme.primary,
+                style: FilledButton.styleFrom(
+                  backgroundColor: _youtubeRed,
+                  foregroundColor: Colors.white,
                   textStyle: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
