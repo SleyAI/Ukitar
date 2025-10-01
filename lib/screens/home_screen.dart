@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ukitar/utils/url_opener.dart';
 
+import 'exercise_screen.dart';
 import 'practice_screen.dart';
 
 const Color _youtubeRed = Color(0xFFFF0000);
@@ -72,13 +73,13 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton(
+              child: FilledButton(
                 onPressed: () {
                   Navigator.of(context).push(MaterialPageRoute<void>(
-                    builder: (BuildContext context) => const PracticeScreen(),
+                    builder: (BuildContext context) => const ExerciseScreen(),
                   ));
                 },
-                style: OutlinedButton.styleFrom(
+                style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   textStyle: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
