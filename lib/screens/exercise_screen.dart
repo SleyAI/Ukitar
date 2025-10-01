@@ -136,7 +136,24 @@ class _ChordCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            Center(child: ChordDiagram(chord: model.currentChord)),
+            if (model.isChordPatternVisible) ...<Widget>[
+              Center(child: ChordDiagram(chord: model.currentChord)),
+              const SizedBox(height: 16),
+              Center(
+                child: TextButton.icon(
+                  onPressed: model.toggleChordPatternVisibility,
+                  icon: const Icon(Icons.visibility_off),
+                  label: const Text('Hide Chord Pattern'),
+                ),
+              ),
+            ] else
+              Center(
+                child: FilledButton.tonalIcon(
+                  onPressed: model.toggleChordPatternVisibility,
+                  icon: const Icon(Icons.visibility),
+                  label: const Text('Show Chord Pattern'),
+                ),
+              ),
           ],
         ),
       ),
