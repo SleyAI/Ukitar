@@ -54,7 +54,7 @@ class HomeScreen extends StatelessWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 160),
+            const SizedBox(height: 100),
             _FeatureBullet(
               icon: Icons.auto_graph,
               title: 'Step-by-step course',
