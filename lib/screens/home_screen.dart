@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:ukitar/utils/url_opener.dart';
 
@@ -67,6 +68,7 @@ class HomeScreen extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: OutlinedButton.icon(
                 onPressed: () => _openYoutubeChannel(context),
+
                 icon: const Icon(Icons.play_circle_fill),
                 label: const Text('Watch awiealissa on YouTube'),
                 style: OutlinedButton.styleFrom(
@@ -101,6 +103,7 @@ Future<void> _openYoutubeChannel(BuildContext context) async {
         content: Text('Unable to open the YouTube channel right now.'),
       ),
     );
+
   }
 }
 
