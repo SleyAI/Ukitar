@@ -6,11 +6,16 @@ Future<bool> openExternalUrl(String url) async {
     return false;
   }
 
-  // Try launching outside the app when possible (e.g., dedicated app or browser).
-  if (await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+  // Prefer opening the link inside an in-app browser sheet when available.
+  if (await launchUrl(uri, mode: LaunchMode.inAppBrowserView)) {
     return true;
   }
 
   // Fallback to the platform default behaviour.
-  return launchUrl(uri, mode: LaunchMode.platformDefault);
+  if (await launchUrl(uri, mode: LaunchMode.platformDefault)) {
+    return true;
+  }
+
+  // Finally, try launching outside the app (e.g., dedicated app or browser).
+  return launchUrl(uri, mode: LaunchMode.externalApplication);
 }
