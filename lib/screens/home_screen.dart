@@ -71,13 +71,14 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Center(
-              child: OutlinedButton.icon(
+              child: FilledButton.icon(
                 onPressed: () => _openYoutubeChannel(context),
                 icon: const Icon(Icons.play_circle_fill),
                 label: const Text('Watch awiealissa on YouTube'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: _youtubeRed,
-                  side: const BorderSide(color: _youtubeRed),
+                style: FilledButton.styleFrom(
+                  backgroundColor: _youtubeRed,
+                  foregroundColor: Colors.white,
+
                   textStyle: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
