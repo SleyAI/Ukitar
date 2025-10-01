@@ -198,6 +198,7 @@ class _HomeIllustration extends StatelessWidget {
 
     return Image.asset(
       'images/ukulele.png',
+
       height: imageHeight,
       fit: BoxFit.contain,
     );
