@@ -196,8 +196,9 @@ class _HomeIllustration extends StatelessWidget {
     final double computedHeight = titleHeight + subtitleHeight + spacing;
     final double imageHeight = computedHeight > 0 ? computedHeight : 120;
 
-    return Image.network(
-      'https://www.pinclipart.com/picdir/big/151-1519429_free-images-on-line-ukulele-clipart.png',
+    return Image.asset(
+      'images/ukulele.png',
+
       height: imageHeight,
       fit: BoxFit.contain,
     );
