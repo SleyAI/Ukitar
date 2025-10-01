@@ -78,6 +78,7 @@ class HomeScreen extends StatelessWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: _youtubeRed,
                   foregroundColor: Colors.white,
+
                   textStyle: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
