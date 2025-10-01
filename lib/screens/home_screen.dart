@@ -45,6 +45,12 @@ class HomeScreen extends StatelessWidget {
               title: 'Step-by-step course',
               description: 'Unlock new chords only after mastering the basics.',
             ),
+            const SizedBox(height: 24),
+            _FeatureBullet(
+              icon: Icons.mic,
+              title: 'Microphone feedback',
+              description: 'Your ukulele is the controller—strum to progress.',
+            ),
             const Spacer(),
             SizedBox(
               width: double.infinity,
@@ -78,12 +84,6 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            _FeatureBullet(
-              icon: Icons.mic,
-              title: 'Microphone feedback',
-              description: 'Your ukulele is the controller—strum to progress.',
             ),
             const SizedBox(height: 24),
           ],
