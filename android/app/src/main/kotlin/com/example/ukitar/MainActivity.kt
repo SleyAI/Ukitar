@@ -66,11 +66,30 @@ class MainActivity : FlutterActivity() {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setFrameRate(
-                preferredMode.refreshRate,
-                Window.FRAME_RATE_COMPATIBILITY_DEFAULT,
-                Window.CHANGE_FRAME_RATE_ALWAYS
-            )
+            val frameRate = preferredMode.refreshRate
+            runCatching {
+                val windowClass = Window::class.java
+                val setFrameRate = windowClass.getMethod(
+                    "setFrameRate",
+                    Float::class.javaPrimitiveType,
+                    Int::class.javaPrimitiveType,
+                    Int::class.javaPrimitiveType
+                )
+                val frameRateCompatibilityDefault = windowClass
+                    .getField("FRAME_RATE_COMPATIBILITY_DEFAULT")
+                    .getInt(null)
+                val changeFrameRateAlways = windowClass
+                    .getField("CHANGE_FRAME_RATE_ALWAYS")
+                    .getInt(null)
+
+                setFrameRate.invoke(
+                    window,
+                    frameRate,
+                    frameRateCompatibilityDefault,
+                    changeFrameRateAlways
+                )
+            }
+
         }
     }
 }
