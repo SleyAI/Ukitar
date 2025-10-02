@@ -22,13 +22,19 @@ class _HomeScreenState extends State<HomeScreen> {
     final ThemeData theme = Theme.of(context);
     final String instrumentName = _selectedInstrument.displayName;
     final String instrumentNoun = _selectedInstrument.noun;
+    final ButtonStyle primaryButtonStyle = FilledButton.styleFrom(
+      minimumSize: const Size.fromHeight(48),
+      textStyle: theme.textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+      ),
+    );
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 48.0),
+        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 32.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            const SizedBox(height: 64),
+            const SizedBox(height: 24),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -85,70 +91,65 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _showInstrumentPicker,
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  textStyle: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 320),
+                child: FilledButton(
+                  onPressed: _showInstrumentPicker,
+                  style: primaryButtonStyle,
+                  child: const Text('Choose Instrument'),
                 ),
-                child: const Text('Choose Instrument'),
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute<void>(
-                    builder: (BuildContext context) => PracticeScreen(
-                      instrument: _selectedInstrument,
-                    ),
-                  ));
-                },
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  textStyle: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                child: const Text('Start Practice'),
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute<void>(
-                    builder: (BuildContext context) => ExerciseScreen(
-                      instrument: _selectedInstrument,
-                    ),
-                  ));
-                },
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  textStyle: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                child: const Text('Start Exercise'),
               ),
             ),
             const SizedBox(height: 12),
             Center(
-              child: FilledButton.icon(
-                onPressed: () => _openYoutubeChannel(context),
-                icon: const Icon(Icons.play_circle_fill),
-                label: const Text('Watch awiealissa on YouTube'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: _youtubeRed,
-                  foregroundColor: Colors.white,
-                  textStyle: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 320),
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute<void>(
+                      builder: (BuildContext context) => PracticeScreen(
+                        instrument: _selectedInstrument,
+                      ),
+                    ));
+                  },
+                  style: primaryButtonStyle,
+                  child: const Text('Start Practice'),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 320),
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute<void>(
+                      builder: (BuildContext context) => ExerciseScreen(
+                        instrument: _selectedInstrument,
+                      ),
+                    ));
+                  },
+                  style: primaryButtonStyle,
+                  child: const Text('Start Exercise'),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 320),
+                child: FilledButton.icon(
+                  onPressed: () => _openYoutubeChannel(context),
+                  icon: const Icon(Icons.play_circle_fill),
+                  label: const Text('Watch awiealissa on YouTube'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _youtubeRed,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(48),
+                    textStyle: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),

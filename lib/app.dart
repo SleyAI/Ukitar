@@ -12,11 +12,15 @@ class UkitarApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.teal,
-          brightness: Brightness.light,
+          brightness: Brightness.dark,
         ),
-        scaffoldBackgroundColor: const Color(0xFFF8FAFB),
+        scaffoldBackgroundColor: const Color(0xFF121212),
         useMaterial3: true,
-        textTheme: Typography.englishLike2021.apply(fontSizeFactor: 1.0),
+        textTheme: Typography.englishLike2021.apply(
+          fontSizeFactor: 1.0,
+          bodyColor: Colors.white,
+          displayColor: Colors.white,
+        ),
       ),
       home: const HomeScreen(),
     );
