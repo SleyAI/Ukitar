@@ -11,10 +11,10 @@ class UkitarApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
+          seedColor: const Color.fromARGB(255, 255, 255, 255),
           brightness: Brightness.dark,
         ),
-        scaffoldBackgroundColor: const Color(0xFF174455),
+        scaffoldBackgroundColor: const Color(0xFF272727),
         useMaterial3: true,
         textTheme: Typography.englishLike2021.apply(
           fontSizeFactor: 1.0,

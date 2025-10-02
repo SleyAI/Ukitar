@@ -144,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: const Icon(Icons.play_circle_fill),
                   label: const Text('Watch awiealissa on YouTube'),
                   style: FilledButton.styleFrom(
-                    backgroundColor: _youtubeRed,
+                    backgroundColor: const Color.fromARGB(180, 255, 0, 0),
                     foregroundColor: Colors.white,
                     minimumSize: const Size.fromHeight(48),
                     textStyle: theme.textTheme.bodyMedium?.copyWith(
