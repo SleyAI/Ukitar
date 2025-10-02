@@ -89,6 +89,7 @@ class MainActivity : FlutterActivity() {
                     changeFrameRateAlways
                 )
             }
+
         }
     }
 }
