@@ -14,7 +14,7 @@ class UkitarApp extends StatelessWidget {
           seedColor: Colors.teal,
           brightness: Brightness.dark,
         ),
-        scaffoldBackgroundColor: const Color(0xFF121212),
+        scaffoldBackgroundColor: const Color(0xFF174455),
         useMaterial3: true,
         textTheme: Typography.englishLike2021.apply(
           fontSizeFactor: 1.0,
