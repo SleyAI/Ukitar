@@ -22,140 +22,206 @@ class _HomeScreenState extends State<HomeScreen> {
     final ThemeData theme = Theme.of(context);
     final String instrumentName = _selectedInstrument.displayName;
     final String instrumentNoun = _selectedInstrument.noun;
-    final ButtonStyle primaryButtonStyle = FilledButton.styleFrom(
-      minimumSize: const Size.fromHeight(48),
-      textStyle: theme.textTheme.titleMedium?.copyWith(
-        fontWeight: FontWeight.w600,
-      ),
+    final bool isWide = MediaQuery.of(context).size.width >= 900;
+    final ButtonStyle primaryButtonStyle =
+        (theme.filledButtonTheme.style ?? const ButtonStyle()).copyWith(
+      minimumSize: const MaterialStatePropertyAll<Size>(Size.fromHeight(52)),
     );
+
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 32.0),
-        child: Column(
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: <Color>[
+              Color(0xFF090B10),
+              Color(0xFF0F141D),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isWide ? 64 : 24,
+              vertical: isWide ? 48 : 32,
+            ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            const SizedBox(height: 24),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Expanded(
-                  child: Column(
+            const SizedBox(height: 16),
+            Container(
+              padding: EdgeInsets.all(isWide ? 40 : 28),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withOpacity(0.82),
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(color: theme.colorScheme.outlineVariant),
+                boxShadow: const <BoxShadow>[
+                  BoxShadow(
+                    color: Color(0x40121624),
+                    blurRadius: 40,
+                    offset: Offset(0, 20),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(
-                        'Ukitar',
-                        style: theme.textTheme.displaySmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              'Ukitar',
+                              style: theme.textTheme.displaySmall?.copyWith(
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'by awiealissa',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              'Learn your first $instrumentNoun chords with guided practice and real-time feedback.',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'by awiealissa',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
+                      if (isWide) ...<Widget>[
+                        const SizedBox(width: 32),
+                        const _HomeIllustration(),
+                      ],
                     ],
                   ),
-                ),
-                const SizedBox(width: 16),
-                const _HomeIllustration(),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Learn your first $instrumentNoun chords with guided practice and real-time feedback.',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+                  if (!isWide) ...<Widget>[
+                    const SizedBox(height: 32),
+                    const _HomeIllustration(),
+                  ],
+                ],
               ),
             ),
-            const SizedBox(height: 75),
-            _FeatureBullet(
-              icon: Icons.auto_graph,
-              title: 'Step-by-step course',
-              description: 'Unlock new chords only after mastering the basics.',
-            ),
-            const SizedBox(height: 24),
-            _FeatureBullet(
-              icon: Icons.mic,
-              title: 'Microphone feedback',
-              description: 'Your instrument is the controller—strum to progress.',
-            ),
-            const Spacer(),
-            Text(
-              'Currently learning: $instrumentName',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurface,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 320),
-                child: FilledButton(
-                  onPressed: _showInstrumentPicker,
-                  style: primaryButtonStyle,
-                  child: const Text('Choose Instrument'),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 320),
-                child: FilledButton(
-                  onPressed: () {
-                    Navigator.of(context).push(MaterialPageRoute<void>(
-                      builder: (BuildContext context) => PracticeScreen(
-                        instrument: _selectedInstrument,
+            const SizedBox(height: 48),
+            LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                final bool compact = constraints.maxWidth < 680;
+                return Wrap(
+                  spacing: 20,
+                  runSpacing: 20,
+                  children: <Widget>[
+                    SizedBox(
+                      width: compact ? constraints.maxWidth : (constraints.maxWidth - 20) / 2,
+                      child: const _FeatureBullet(
+                        icon: Icons.auto_graph,
+                        title: 'Step-by-step course',
+                        description: 'Unlock new chords only after mastering the basics.',
                       ),
-                    ));
-                  },
-                  style: primaryButtonStyle,
-                  child: const Text('Start Practice'),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 320),
-                child: FilledButton(
-                  onPressed: () {
-                    Navigator.of(context).push(MaterialPageRoute<void>(
-                      builder: (BuildContext context) => ExerciseScreen(
-                        instrument: _selectedInstrument,
+                    ),
+                    SizedBox(
+                      width: compact ? constraints.maxWidth : (constraints.maxWidth - 20) / 2,
+                      child: const _FeatureBullet(
+                        icon: Icons.mic,
+                        title: 'Microphone feedback',
+                        description: 'Your instrument is the controller—strum to progress.',
                       ),
-                    ));
-                  },
-                  style: primaryButtonStyle,
-                  child: const Text('Start Exercise'),
-                ),
-              ),
+                    ),
+                    SizedBox(
+                      width: compact ? constraints.maxWidth : (constraints.maxWidth - 20) / 2,
+                      child: const _FeatureBullet(
+                        icon: Icons.auto_awesome,
+                        title: 'Adaptive guidance',
+                        description: 'Personalised tips keep you motivated and on tempo.',
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
-            const SizedBox(height: 12),
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 320),
-                child: FilledButton.icon(
-                  onPressed: () => _openYoutubeChannel(context),
-                  icon: const Icon(Icons.play_circle_fill),
-                  label: const Text('Watch awiealissa on YouTube'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: _youtubeRed,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size.fromHeight(48),
-                    textStyle: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+            const SizedBox(height: 48),
+            Container(
+              padding: EdgeInsets.all(isWide ? 36 : 28),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withOpacity(0.88),
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(color: theme.colorScheme.outlineVariant),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Text(
+                    'Currently learning: $instrumentName',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Switch instruments or jump straight into a focused session.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  FilledButton(
+                    onPressed: _showInstrumentPicker,
+                    style: primaryButtonStyle,
+                    child: const Text('Choose Instrument'),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute<void>(
+                        builder: (BuildContext context) => PracticeScreen(
+                          instrument: _selectedInstrument,
+                        ),
+                      ));
+                    },
+                    style: primaryButtonStyle,
+                    child: const Text('Start Practice'),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute<void>(
+                        builder: (BuildContext context) => ExerciseScreen(
+                          instrument: _selectedInstrument,
+                        ),
+                      ));
+                    },
+                    style: primaryButtonStyle,
+                    child: const Text('Start Exercise'),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: () => _openYoutubeChannel(context),
+                    icon: const Icon(Icons.play_circle_fill),
+                    label: const Text('Watch awiealissa on YouTube'),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(52),
+                      backgroundColor: _youtubeRed,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
           ],
+        ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -252,29 +318,54 @@ class _FeatureBullet extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Icon(icon, color: theme.colorScheme.primary),
-        const SizedBox(width: 12),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurfaceVariant,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withOpacity(0.76),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: theme.colorScheme.outlineVariant),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        title,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        description,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ],
