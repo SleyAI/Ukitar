@@ -10,22 +10,33 @@ class ChordDiagram extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final int fretCount = (chord.maxFret <= 3) ? 4 : chord.maxFret + 1;
+    final int stringCount = chord.stringCount;
     final double height = 60 + fretCount * 48;
+    final double width = 48 + (stringCount - 1) * 44;
     return SizedBox(
-      width: 220,
+      width: width,
       height: height,
       child: CustomPaint(
-        painter: _ChordDiagramPainter(chord: chord, fretCount: fretCount),
+        painter: _ChordDiagramPainter(
+          chord: chord,
+          fretCount: fretCount,
+          stringCount: stringCount,
+        ),
       ),
     );
   }
 }
 
 class _ChordDiagramPainter extends CustomPainter {
-  _ChordDiagramPainter({required this.chord, required this.fretCount});
+  _ChordDiagramPainter({
+    required this.chord,
+    required this.fretCount,
+    required this.stringCount,
+  });
 
   final Chord chord;
   final int fretCount;
+  final int stringCount;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -40,10 +51,12 @@ class _ChordDiagramPainter extends CustomPainter {
     final double drawableHeight = size.height - topMargin - bottomMargin;
     final double fretGap = drawableHeight / fretCount;
     final double drawableWidth = size.width - (sideMargin * 2);
-    final double stringGap = drawableWidth / 3;
+    final double stringGap = stringCount > 1
+        ? drawableWidth / (stringCount - 1)
+        : drawableWidth;
 
     // Draw strings
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < stringCount; i++) {
       final double x = sideMargin + i * stringGap;
       canvas.drawLine(Offset(x, topMargin), Offset(x, size.height - bottomMargin), linePaint);
     }
@@ -65,7 +78,7 @@ class _ChordDiagramPainter extends CustomPainter {
 
     // Draw string labels and open string markers
     final List<int> frets = chord.stringFrets;
-    for (int string = 0; string < 4; string++) {
+    for (int string = 0; string < stringCount; string++) {
       final double x = sideMargin + string * stringGap;
       final double openY = topMargin - 16;
       if (frets[string] == 0) {

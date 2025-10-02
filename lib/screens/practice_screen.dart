@@ -3,50 +3,68 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/instrument.dart';
+import '../services/chord_recognition_service.dart';
 import '../utils/url_opener.dart';
 import '../viewmodels/practice_view_model.dart';
 import '../widgets/chord_diagram.dart';
 
-class PracticeScreen extends StatefulWidget {
-  const PracticeScreen({super.key});
+class PracticeScreen extends StatelessWidget {
+  const PracticeScreen({super.key, required this.instrument});
 
-  @override
-  State<PracticeScreen> createState() => _PracticeScreenState();
-}
-
-class _PracticeScreenState extends State<PracticeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final PracticeViewModel model = context.read<PracticeViewModel>();
-      unawaited(model.resetAttempt());
-    });
-  }
+  final InstrumentType instrument;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Practice'),
-      ),
-      body: Consumer<PracticeViewModel>(
-        builder: (BuildContext context, PracticeViewModel model, _) {
-          final ColorScheme colorScheme = Theme.of(context).colorScheme;
-          final TextTheme textTheme = Theme.of(context).textTheme;
-          final Color primaryTextColor = colorScheme.onSurface;
-          final Color secondaryTextColor = colorScheme.onSurfaceVariant;
+    return ChangeNotifierProvider<PracticeViewModel>(
+      create: (_) => PracticeViewModel(ChordRecognitionService(), instrument),
+      child: const _PracticeView(),
+    );
+  }
+}
 
-          return SingleChildScrollView(
+class _PracticeView extends StatelessWidget {
+  const _PracticeView();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<PracticeViewModel>(
+      builder: (BuildContext context, PracticeViewModel model, _) {
+        final ThemeData theme = Theme.of(context);
+        final ColorScheme colorScheme = theme.colorScheme;
+        final TextTheme textTheme = theme.textTheme;
+        final Color primaryTextColor = colorScheme.onSurface;
+        final Color secondaryTextColor = colorScheme.onSurfaceVariant;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Practice • ${model.instrumentLabel}'),
+          ),
+          body: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  'Beginner progression',
-                  style: textTheme.titleMedium?.copyWith(
-                    color: primaryTextColor,
-                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        'Beginner progression',
+                        style: textTheme.titleMedium?.copyWith(
+                          color: primaryTextColor,
+                        ),
+                      ),
+                    ),
+                    Chip(
+                      label: Text(model.instrumentLabel),
+                      backgroundColor: colorScheme.primaryContainer,
+                      labelStyle: textTheme.labelLarge?.copyWith(
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 Wrap(
@@ -177,9 +195,9 @@ class _PracticeScreenState extends State<PracticeScreen> {
                 _FeedbackCard(model: model),
               ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

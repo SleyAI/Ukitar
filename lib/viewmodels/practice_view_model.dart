@@ -4,17 +4,20 @@ import 'package:flutter/foundation.dart';
 
 import '../data/chord_library.dart';
 import '../models/chord.dart';
+import '../models/instrument.dart';
 import '../services/chord_recognition_service.dart';
 
 class PracticeViewModel extends ChangeNotifier {
-  PracticeViewModel(this._chordRecognitionService)
-      : chords = ChordLibrary.beginnerCourse() {
+  PracticeViewModel(this._chordRecognitionService, this.instrument)
+      : chords = ChordLibrary.beginnerCourse(instrument) {
     _frequencySubscription =
         _chordRecognitionService.frequencyStream.listen(_handleFrequency);
+    unawaited(resetAttempt());
   }
 
   final ChordRecognitionService _chordRecognitionService;
   final List<Chord> chords;
+  final InstrumentType instrument;
 
   late final StreamSubscription<double> _frequencySubscription;
 
@@ -44,6 +47,8 @@ class PracticeViewModel extends ChangeNotifier {
   List<int> get matchedStrings => _matchedStrings.toList(growable: false);
 
   int get requiredRepetitions => repetitionsRequired;
+
+  String get instrumentLabel => instrument.displayName;
 
   double get repetitionProgress =>
       completedRepetitions / repetitionsRequired;
