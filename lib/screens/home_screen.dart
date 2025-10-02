@@ -64,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 100),
+            const SizedBox(height: 75),
             _FeatureBullet(
               icon: Icons.auto_graph,
               title: 'Step-by-step course',
