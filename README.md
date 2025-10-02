@@ -1,22 +1,26 @@
 # Ukitar
 
-Ukitar is a Flutter learning companion that guides new ukulele players through
-beginner-friendly chords while providing real-time microphone feedback. The app
-combines a curated lesson path with on-device pitch detection so that every
-strum helps you unlock the next skill.
+Ukitar is a Flutter learning companion that guides new ukulele and guitar
+players through beginner-friendly chords while providing real-time microphone
+feedback. The app combines a curated lesson path with on-device pitch detection
+so that every strum helps you unlock the next skill, no matter which instrument
+you pick up.
 
 ## Features
 
 - **Guided chord progression** – Step-by-step beginner course that unlocks new
-  chords after you master the previous one with clean repetitions.
+  chords after you master the previous one with clean repetitions, with lesson
+  tracks tailored for both ukulele and guitar learners.
 - **Interactive practice screen** – Visual chord diagrams, finger placement tips
-  and progress tracking tailored to the currently selected chord.
+  and progress tracking tailored to the currently selected chord and selected
+  instrument.
 - **Real-time listening feedback** – Microphone-based pitch detection validates
-  every string, highlights successful matches and tracks repetition goals.
+  every string, highlights successful matches and tracks repetition goals,
+  adapting to the tuning and string layout of your instrument.
 - **Permission handling assistance** – In-app prompts help learners grant the
   microphone access required for listening mode.
 - **Reset and retry controls** – Quickly restart an attempt or stop listening to
-  adjust your playing before the next strum.
+  adjust your playing before the next strum on either instrument.
 
 ## Technologies & Libraries
 
