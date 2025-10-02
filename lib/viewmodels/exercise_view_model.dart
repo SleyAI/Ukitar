@@ -5,11 +5,12 @@ import 'package:flutter/foundation.dart';
 
 import '../data/chord_library.dart';
 import '../models/chord.dart';
+import '../models/instrument.dart';
 import '../services/chord_recognition_service.dart';
 
 class ExerciseViewModel extends ChangeNotifier {
-  ExerciseViewModel(this._chordRecognitionService)
-      : chords = ChordLibrary.beginnerCourse() {
+  ExerciseViewModel(this._chordRecognitionService, this.instrument)
+      : chords = ChordLibrary.beginnerCourse(instrument) {
     _frequencySubscription =
         _chordRecognitionService.frequencyStream.listen(_handleFrequency);
     _prepareNextChord(initial: true);
@@ -17,6 +18,7 @@ class ExerciseViewModel extends ChangeNotifier {
 
   final ChordRecognitionService _chordRecognitionService;
   final List<Chord> chords;
+  final InstrumentType instrument;
 
   late final StreamSubscription<double> _frequencySubscription;
   final Random _random = Random();
@@ -35,6 +37,8 @@ class ExerciseViewModel extends ChangeNotifier {
   bool isChordPatternVisible = false;
 
   String statusMessage = 'Press "Start Listening" to begin.';
+
+  String get instrumentLabel => instrument.displayName;
 
   Timer? _attemptTimer;
   bool _disposed = false;

@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/instrument.dart';
 import '../services/chord_recognition_service.dart';
 import '../viewmodels/exercise_view_model.dart';
 import '../widgets/chord_diagram.dart';
 
 class ExerciseScreen extends StatelessWidget {
-  const ExerciseScreen({super.key});
+  const ExerciseScreen({super.key, required this.instrument});
+
+  final InstrumentType instrument;
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<ExerciseViewModel>(
-      create: (_) => ExerciseViewModel(ChordRecognitionService()),
+      create: (_) => ExerciseViewModel(ChordRecognitionService(), instrument),
       child: const _ExerciseView(),
     );
   }
@@ -26,7 +29,7 @@ class _ExerciseView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Exercises'),
+        title: Text('Exercises • ${context.watch<ExerciseViewModel>().instrumentLabel}'),
       ),
       body: Consumer<ExerciseViewModel>(
         builder: (BuildContext context, ExerciseViewModel model, _) {

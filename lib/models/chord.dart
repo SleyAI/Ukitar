@@ -1,6 +1,6 @@
 import 'dart:math';
 
-/// Represents a ukulele chord with its diagram information and expected notes.
+/// Represents a chord with its diagram information and expected notes.
 class Chord {
   Chord({
     required this.id,
@@ -8,6 +8,7 @@ class Chord {
     required this.description,
     required this.fingerPositions,
     required this.tips,
+    required this.stringTunings,
   }) {
     _notes = _buildNotes();
   }
@@ -17,20 +18,15 @@ class Chord {
   final String description;
   final List<ChordFingerPosition> fingerPositions;
   final List<String> tips;
+  final List<StringTuning> stringTunings;
 
   late final List<ChordNote> _notes;
 
-  /// Standard tuning for ukulele strings: G, C, E, A.
-  static const List<_StringTuning> _stringTunings = <_StringTuning>[
-    _StringTuning(label: 'G', midi: 67),
-    _StringTuning(label: 'C', midi: 60),
-    _StringTuning(label: 'E', midi: 64),
-    _StringTuning(label: 'A', midi: 69),
-  ];
+  int get stringCount => stringTunings.length;
 
   /// Returns the strings (0-3) to fret mapping for this chord.
   List<int> get stringFrets {
-    final List<int> frets = List<int>.filled(_stringTunings.length, 0);
+    final List<int> frets = List<int>.filled(stringTunings.length, 0);
     for (final ChordFingerPosition finger in fingerPositions) {
       frets[finger.stringIndex] = max(frets[finger.stringIndex], finger.fret);
     }
@@ -55,10 +51,10 @@ class Chord {
     return null;
   }
 
-  String stringLabel(int index) => _stringTunings[index].label;
+  String stringLabel(int index) => stringTunings[index].label;
 
   ChordNote _buildNoteForString(int stringIndex, int fret) {
-    final _StringTuning tuning = _stringTunings[stringIndex];
+    final StringTuning tuning = stringTunings[stringIndex];
     final int midi = tuning.midi + fret;
     final double frequency = 440.0 * pow(2, (midi - 69) / 12).toDouble();
 
@@ -106,7 +102,7 @@ class ChordFingerPosition {
     required this.fingerNumber,
   });
 
-  /// Zero-based index of the string (0 = G string, 3 = A string).
+  /// Zero-based index of the string (0 = lowest pitch string).
   final int stringIndex;
 
   /// Fret number (0 indicates an open string).
@@ -130,8 +126,8 @@ class ChordNote {
   final double frequency;
 }
 
-class _StringTuning {
-  const _StringTuning({required this.label, required this.midi});
+class StringTuning {
+  const StringTuning({required this.label, required this.midi});
 
   final String label;
   final int midi;

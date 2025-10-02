@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:ukitar/utils/url_opener.dart';
 
+import '../models/instrument.dart';
 import 'exercise_screen.dart';
 import 'practice_screen.dart';
 
 const Color _youtubeRed = Color(0xFFFF0000);
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  InstrumentType _selectedInstrument = InstrumentType.ukulele;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final String instrumentName = _selectedInstrument.displayName;
+    final String instrumentNoun = _selectedInstrument.noun;
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 48.0),
@@ -49,7 +59,7 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Learn your first ukulele chords with guided practice and real-time feedback.',
+              'Learn your first $instrumentNoun chords with guided practice and real-time feedback.',
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -64,15 +74,25 @@ class HomeScreen extends StatelessWidget {
             _FeatureBullet(
               icon: Icons.mic,
               title: 'Microphone feedback',
-              description: 'Your ukulele is the controller—strum to progress.',
+              description: 'Your instrument is the controller—strum to progress.',
             ),
             const Spacer(),
+            Text(
+              'Currently learning: $instrumentName',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
                 onPressed: () {
                   Navigator.of(context).push(MaterialPageRoute<void>(
-                    builder: (BuildContext context) => const PracticeScreen(),
+                    builder: (BuildContext context) => PracticeScreen(
+                      instrument: _selectedInstrument,
+                    ),
                   ));
                 },
                 style: FilledButton.styleFrom(
@@ -88,9 +108,25 @@ class HomeScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
+                onPressed: _showInstrumentPicker,
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  textStyle: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                child: const Text('Choose Instrument'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
                 onPressed: () {
                   Navigator.of(context).push(MaterialPageRoute<void>(
-                    builder: (BuildContext context) => const ExerciseScreen(),
+                    builder: (BuildContext context) => ExerciseScreen(
+                      instrument: _selectedInstrument,
+                    ),
                   ));
                 },
                 style: FilledButton.styleFrom(
@@ -122,6 +158,67 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _showInstrumentPicker() async {
+    final ThemeData theme = Theme.of(context);
+    final InstrumentType? result = await showDialog<InstrumentType>(
+      context: context,
+      builder: (BuildContext context) {
+        return SimpleDialog(
+          title: const Text('Choose instrument'),
+          children: <Widget>[
+            for (final InstrumentType instrument in InstrumentType.values)
+              SimpleDialogOption(
+                onPressed: () => Navigator.of(context).pop(instrument),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Icon(
+                      instrument == _selectedInstrument
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_off,
+                      color: instrument == _selectedInstrument
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            instrument.displayName,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            instrument.description,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted || result == null || result == _selectedInstrument) {
+      return;
+    }
+
+    setState(() {
+      _selectedInstrument = result;
+    });
   }
 }
 
