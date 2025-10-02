@@ -88,6 +88,20 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
+                onPressed: _showInstrumentPicker,
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  textStyle: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                child: const Text('Choose Instrument'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
                 onPressed: () {
                   Navigator.of(context).push(MaterialPageRoute<void>(
                     builder: (BuildContext context) => PracticeScreen(
@@ -102,20 +116,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 child: const Text('Start Practice'),
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _showInstrumentPicker,
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  textStyle: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                child: const Text('Choose Instrument'),
               ),
             ),
             const SizedBox(height: 12),
