@@ -169,30 +169,34 @@ class _InstrumentSelection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Text(
-          'Choose your instrument',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: theme.colorScheme.onSurface,
+    
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            'Choose your instrument',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurface,
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 16,
-          children: <Widget>[
-            for (final InstrumentType instrument in InstrumentType.values)
-              _InstrumentChip(
-                instrument: instrument,
-                isSelected: instrument == selectedInstrument,
-                onSelected: onInstrumentSelected,
-              ),
-          ],
-        ),
-      ],
+          const SizedBox(height: 12),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 16,
+            children: <Widget>[
+              for (final InstrumentType instrument in InstrumentType.values)
+                _InstrumentChip(
+                  instrument: instrument,
+                  isSelected: instrument == selectedInstrument,
+                  onSelected: onInstrumentSelected,
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -216,13 +220,13 @@ class _InstrumentChip extends StatelessWidget {
       fontWeight: FontWeight.w600,
       color: isSelected ? primaryColor : theme.colorScheme.onSurface,
     );
-    String symbol;
+    String assetPath;
     switch (instrument) {
       case InstrumentType.ukulele:
-        symbol = '🪕';
+        assetPath = 'assets/icons/ukulele.png';
         break;
       case InstrumentType.guitar:
-        symbol = '🎸';
+        assetPath = 'assets/icons/guitar.png';
         break;
     }
 
@@ -245,11 +249,17 @@ class _InstrumentChip extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Text(
-              symbol,
-              style: const TextStyle(fontSize: 40),
+            Semantics(
+              label: instrument.displayName,
+              selected: isSelected,
+              child: Image.asset(
+                assetPath,
+                width: 64,
+                height: 64,
+                fit: BoxFit.contain,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
               instrument.displayName,
               style: labelStyle,
