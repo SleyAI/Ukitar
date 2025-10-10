@@ -85,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
               selectedInstrument: _selectedInstrument,
               onInstrumentSelected: _onInstrumentSelected,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 320),
@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ));
                   },
                   style: primaryButtonStyle,
-                  child: const Text('Start Practice'),
+                  child: const Text('Practice'),
                 ),
               ),
             ),
@@ -115,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ));
                   },
                   style: primaryButtonStyle,
-                  child: const Text('Start Exercise'),
+                  child: const Text('Exercise'),
                 ),
               ),
             ),
