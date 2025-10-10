@@ -247,28 +247,8 @@ class _ChordChipState extends State<_ChordChip>
       }
     });
 
-  late final AnimationController _lockPulseController = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1600),
-  );
-
-  late final Animation<double> _lockPulseAnimation = CurvedAnimation(
-    parent: _lockPulseController,
-    curve: Curves.easeInOut,
-  ).drive(Tween<double>(begin: 0.9, end: 1.05));
-
   bool _showCelebration = false;
   late final List<_ConfettiParticle> _particles = _ConfettiParticle.generate();
-
-  @override
-  void initState() {
-    super.initState();
-    if (!widget.unlocked) {
-      _lockPulseController.repeat(reverse: true);
-    } else {
-      _lockPulseController.value = 1;
-    }
-  }
 
   @override
   void didUpdateWidget(covariant _ChordChip oldWidget) {
@@ -279,18 +259,11 @@ class _ChordChipState extends State<_ChordChip>
       _triggerCelebration();
     }
 
-    if (!widget.unlocked && oldWidget.unlocked) {
-      _lockPulseController.repeat(reverse: true);
-    } else if (widget.unlocked && !oldWidget.unlocked) {
-      _lockPulseController.stop();
-      _lockPulseController.value = 1;
-    }
   }
 
   @override
   void dispose() {
     _celebrationController.dispose();
-    _lockPulseController.dispose();
     super.dispose();
   }
 
@@ -383,12 +356,9 @@ class _ChordChipState extends State<_ChordChip>
               Positioned.fill(
                 child: IgnorePointer(
                   child: Center(
-                    child: ScaleTransition(
-                      scale: _lockPulseAnimation,
-                      child: Icon(
-                        Icons.lock_rounded,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                    child: Icon(
+                      Icons.lock_rounded,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),
