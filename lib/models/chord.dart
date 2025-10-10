@@ -15,7 +15,7 @@ class Chord {
           stringTunings,
           requiredStringIndexes,
         ) {
-    assert(requiredStringIndexes.isNotEmpty,
+    assert(this.requiredStringIndexes.isNotEmpty,
         'Chord must require at least one string to ring.');
     _notes = _buildNotes();
   }
