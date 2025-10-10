@@ -20,7 +20,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final String instrumentNoun = _selectedInstrument.noun;
     final ButtonStyle primaryButtonStyle = FilledButton.styleFrom(
       minimumSize: const Size.fromHeight(48),
       textStyle: theme.textTheme.titleMedium?.copyWith(
@@ -33,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -64,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Learn your first $instrumentNoun chords with guided practice and real-time feedback.',
+              'Learn your first chords with guided practice and real-time feedback.',
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
