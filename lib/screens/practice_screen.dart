@@ -463,8 +463,9 @@ class _ConfettiParticle {
   static List<_ConfettiParticle> generate() {
     final List<_ConfettiParticle> particles = <_ConfettiParticle>[];
     for (int index = 0; index < 10; index++) {
-      final double dx = (index.isEven ? -1 : 1) * (6 + index);
-      final double dy = 12 + index * 3;
+      final double dx = (index.isEven ? -1.0 : 1.0) * (6 + index).toDouble();
+      final double dy = (12 + index * 3).toDouble();
+
       final double size = 4 + (index % 3) * 1.5;
       final double rotation = (index.isEven ? 1 : -1) * 1.2;
       final double colorShift = index / 12;
