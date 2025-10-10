@@ -8,8 +8,15 @@ class Chord {
     required this.description,
     required this.fingerPositions,
     required this.tips,
-    required this.stringTunings,
-  }) {
+    required List<StringTuning> stringTunings,
+    Set<int>? requiredStringIndexes,
+  })  : stringTunings = List<StringTuning>.unmodifiable(stringTunings),
+        requiredStringIndexes = _normalizeRequiredIndexes(
+          stringTunings,
+          requiredStringIndexes,
+        ) {
+    assert(requiredStringIndexes.isNotEmpty,
+        'Chord must require at least one string to ring.');
     _notes = _buildNotes();
   }
 
@@ -19,6 +26,7 @@ class Chord {
   final List<ChordFingerPosition> fingerPositions;
   final List<String> tips;
   final List<StringTuning> stringTunings;
+  final Set<int> requiredStringIndexes;
 
   late final List<ChordNote> _notes;
 
@@ -43,6 +51,9 @@ class Chord {
   /// Returns `null` if the frequency does not match any expected note.
   int? matchFrequency(double frequency, {double toleranceCents = 35}) {
     for (final ChordNote note in notes) {
+      if (!requiredStringIndexes.contains(note.stringIndex)) {
+        continue;
+      }
       final double cents = 1200 * (log(frequency / note.frequency) / ln2);
       if (cents.abs() <= toleranceCents) {
         return note.stringIndex;
@@ -72,6 +83,22 @@ class Chord {
       frets.length,
       (int index) => _buildNoteForString(index, frets[index]),
     );
+  }
+
+  bool isStringRequired(int index) => requiredStringIndexes.contains(index);
+
+  static Set<int> _normalizeRequiredIndexes(
+    List<StringTuning> tunings,
+    Set<int>? overrides,
+  ) {
+    final Iterable<int> indexes =
+        overrides ?? List<int>.generate(tunings.length, (int index) => index);
+    final Set<int> normalized = indexes
+        .where((int index) => index >= 0 && index < tunings.length)
+        .toSet();
+    assert(normalized.isNotEmpty,
+        'Chord must require at least one string to ring.');
+    return Set<int>.unmodifiable(normalized);
   }
 
   static String _noteNameFromMidi(int midi) {
