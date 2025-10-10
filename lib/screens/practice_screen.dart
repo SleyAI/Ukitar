@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -67,18 +68,26 @@ class _PracticeView extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: <Widget>[
-                    for (int index = 0; index < model.chords.length; index++)
-                      _ChordChip(
+                SizedBox(
+                  height: 72,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: EdgeInsets.zero,
+                    itemCount: model.chords.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (BuildContext context, int index) {
+                      final bool isUnlocked = index < model.unlockedChords;
+                      return _ChordChip(
                         chordName: model.chords[index].name,
-                        unlocked: index < model.unlockedChords,
+                        unlocked: isUnlocked,
                         selected: index == model.currentChordIndex,
+                        celebrationEventId: index == model.celebrationChordIndex
+                            ? model.celebrationEventId
+                            : null,
                         onTap: () => model.selectChord(index),
-                      ),
-                  ],
+                      );
+                    },
+                  ),
                 ),
                 const SizedBox(height: 24),
                 Card(
@@ -202,61 +211,326 @@ class _PracticeView extends StatelessWidget {
   }
 }
 
-class _ChordChip extends StatelessWidget {
+class _ChordChip extends StatefulWidget {
   const _ChordChip({
     required this.chordName,
     required this.unlocked,
     required this.selected,
     required this.onTap,
+    this.celebrationEventId,
   });
 
   final String chordName;
   final bool unlocked;
   final bool selected;
   final VoidCallback onTap;
+  final int? celebrationEventId;
+
+  @override
+  State<_ChordChip> createState() => _ChordChipState();
+}
+
+class _ChordChipState extends State<_ChordChip>
+    with TickerProviderStateMixin {
+  late final AnimationController _celebrationController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1200),
+  )..addStatusListener((AnimationStatus status) {
+      if (status == AnimationStatus.completed) {
+        _celebrationController.stop();
+        _celebrationController.value = 0;
+        if (mounted) {
+          setState(() {
+            _showCelebration = false;
+          });
+        }
+      }
+    });
+
+  late final AnimationController _lockPulseController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1600),
+  );
+
+  late final Animation<double> _lockPulseAnimation = CurvedAnimation(
+    parent: _lockPulseController,
+    curve: Curves.easeInOut,
+  ).drive(Tween<double>(begin: 0.9, end: 1.05));
+
+  bool _showCelebration = false;
+  late final List<_ConfettiParticle> _particles = _ConfettiParticle.generate();
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.unlocked) {
+      _lockPulseController.repeat(reverse: true);
+    } else {
+      _lockPulseController.value = 1;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _ChordChip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.celebrationEventId != null &&
+        widget.celebrationEventId != oldWidget.celebrationEventId) {
+      _triggerCelebration();
+    }
+
+    if (!widget.unlocked && oldWidget.unlocked) {
+      _lockPulseController.repeat(reverse: true);
+    } else if (widget.unlocked && !oldWidget.unlocked) {
+      _lockPulseController.stop();
+      _lockPulseController.value = 1;
+    }
+  }
+
+  @override
+  void dispose() {
+    _celebrationController.dispose();
+    _lockPulseController.dispose();
+    super.dispose();
+  }
+
+  void _triggerCelebration() {
+    setState(() {
+      _showCelebration = true;
+    });
+    _celebrationController
+      ..stop()
+      ..forward(from: 0);
+  }
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    return GestureDetector(
-      onTap: unlocked ? onTap : null,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: selected
-              ? theme.colorScheme.primary
-              : unlocked
-                  ? theme.colorScheme.surfaceVariant
-                  : theme.colorScheme.surfaceVariant.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+    final bool isLocked = !widget.unlocked;
+
+    final Color backgroundColor = widget.selected
+        ? theme.colorScheme.primary
+        : widget.unlocked
+            ? theme.colorScheme.surfaceVariant
+            : theme.colorScheme.surfaceVariant.withOpacity(0.6);
+
+    final Color foregroundColor = widget.selected
+        ? theme.colorScheme.onPrimary
+        : widget.unlocked
+            ? theme.colorScheme.onSurface
+            : theme.colorScheme.onSurfaceVariant;
+
+    final Widget chipContent = GestureDetector(
+      onTap: widget.unlocked ? widget.onTap : null,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Stack(
           children: <Widget>[
-            Icon(
-              unlocked ? Icons.check_circle : Icons.lock,
-              size: 16,
-              color: selected
-                  ? theme.colorScheme.onPrimary
-                  : unlocked
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              chordName,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: selected
-                    ? theme.colorScheme.onPrimary
-                    : theme.colorScheme.onSurface,
-                fontWeight: FontWeight.w600,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Icon(
+                    widget.unlocked ? Icons.check_circle : Icons.music_note,
+                    size: 18,
+                    color: widget.selected
+                        ? theme.colorScheme.onPrimary
+                        : widget.unlocked
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    widget.chordName,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: foregroundColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
+            if (isLocked)
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: <Color>[
+                            theme.colorScheme.surfaceVariant
+                                .withOpacity(0.65),
+                            theme.colorScheme.surfaceVariant
+                                .withOpacity(0.45),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            if (isLocked)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Center(
+                    child: ScaleTransition(
+                      scale: _lockPulseAnimation,
+                      child: Icon(
+                        Icons.lock_rounded,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
     );
+
+    if (!_showCelebration) {
+      return chipContent;
+    }
+
+    return AnimatedBuilder(
+      animation: _celebrationController,
+      builder: (BuildContext context, Widget? child) {
+        final double progress = _celebrationController.value;
+        final double glowStrength = (1 - Curves.easeOutQuad.transform(progress))
+            .clamp(0, 1)
+            .toDouble();
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: theme.colorScheme.primary
+                    .withOpacity(0.3 * glowStrength),
+                blurRadius: 24 * glowStrength,
+                spreadRadius: 4 * glowStrength,
+              ),
+            ],
+          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: <Widget>[
+              child!,
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    painter: _ConfettiPainter(
+                      progress: progress,
+                      particles: _particles,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      child: chipContent,
+    );
+  }
+}
+
+class _ConfettiParticle {
+  const _ConfettiParticle({
+    required this.start,
+    required this.velocity,
+    required this.size,
+    required this.rotation,
+    required this.colorShift,
+  });
+
+  final Offset start;
+  final Offset velocity;
+  final double size;
+  final double rotation;
+  final double colorShift;
+
+  static List<_ConfettiParticle> generate() {
+    final List<_ConfettiParticle> particles = <_ConfettiParticle>[];
+    for (int index = 0; index < 10; index++) {
+      final double dx = (index.isEven ? -1.0 : 1.0) * (6 + index).toDouble();
+      final double dy = (12 + index * 3).toDouble();
+      final double size = 4 + (index % 3) * 1.5;
+      final double rotation = (index.isEven ? 1 : -1) * 1.2;
+      final double colorShift = index / 12;
+      particles.add(
+        _ConfettiParticle(
+          start: Offset(0, -4 * index.toDouble()),
+          velocity: Offset(dx, dy),
+          size: size,
+          rotation: rotation,
+          colorShift: colorShift,
+        ),
+      );
+    }
+    return particles;
+  }
+}
+
+class _ConfettiPainter extends CustomPainter {
+  _ConfettiPainter({
+    required this.progress,
+    required this.particles,
+    required this.color,
+  });
+
+  final double progress;
+  final List<_ConfettiParticle> particles;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint();
+    for (final _ConfettiParticle particle in particles) {
+      final double t = Curves.easeOut.transform(progress);
+      final Offset position = Offset(
+        size.width / 2 + particle.start.dx + particle.velocity.dx * t,
+        size.height / 2 + particle.start.dy + particle.velocity.dy * t,
+      );
+      final double opacity = (1 - progress).clamp(0.0, 1.0);
+      paint.color = Color.lerp(
+            color,
+            color.withOpacity(0.2),
+            (particle.colorShift + progress).clamp(0.0, 1.0),
+          )!
+          .withOpacity(opacity);
+
+      canvas.save();
+      canvas.translate(position.dx, position.dy);
+      canvas.rotate(particle.rotation * t);
+      final Rect rect = Rect.fromCenter(
+        center: Offset.zero,
+        width: particle.size,
+        height: particle.size * 0.6,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(2)),
+        paint,
+      );
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ConfettiPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.particles != particles ||
+        oldDelegate.color != color;
   }
 }
 
