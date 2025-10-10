@@ -161,7 +161,8 @@ class ExerciseViewModel extends ChangeNotifier {
     final int? matchedString =
         currentChord.matchFrequency(frequency, toleranceCents: 35);
 
-    if (matchedString == null) {
+    if (matchedString == null ||
+        !currentChord.isStringRequired(matchedString)) {
       return;
     }
 
@@ -174,7 +175,8 @@ class ExerciseViewModel extends ChangeNotifier {
     statusMessage =
         'Heard the ${currentChord.stringLabel(matchedString)} string (${currentChord.notes[matchedString].noteName}).';
 
-    if (_matchedStrings.length >= currentChord.notes.length) {
+    if (_matchedStrings.length >=
+        currentChord.requiredStringIndexes.length) {
       _registerSuccessfulAttempt();
     }
 

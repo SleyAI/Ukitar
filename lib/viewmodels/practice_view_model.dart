@@ -44,7 +44,7 @@ class PracticeViewModel extends ChangeNotifier {
 
   Chord get currentChord => chords[currentChordIndex];
 
-  int get activeStringCount => currentChord.notes.length;
+  int get activeStringCount => currentChord.requiredStringIndexes.length;
 
   List<int> get matchedStrings => _matchedStrings.toList(growable: false);
 
@@ -153,7 +153,8 @@ class PracticeViewModel extends ChangeNotifier {
     latestFrequency = frequency;
     final int? matchedString = currentChord.matchFrequency(frequency);
 
-    if (matchedString != null) {
+    if (matchedString != null &&
+        currentChord.isStringRequired(matchedString)) {
       final bool isNew = _matchedStrings.add(matchedString);
       if (isNew) {
         _restartAttemptTimer();
