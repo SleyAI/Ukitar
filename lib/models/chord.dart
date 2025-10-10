@@ -49,15 +49,43 @@ class Chord {
 
   /// Helper to translate a detected frequency to a matching string index.
   /// Returns `null` if the frequency does not match any expected note.
-  int? matchFrequency(double frequency, {double toleranceCents = 35}) {
-    for (final ChordNote note in notes) {
-      if (!requiredStringIndexes.contains(note.stringIndex)) {
+  int? matchFrequency(
+    double frequency, {
+    double toleranceCents = 45,
+    int harmonicDepth = 4,
+  }) {
+    if (frequency <= 0) {
+      return null;
+    }
+
+    int? bestMatch;
+    double smallestDelta = toleranceCents + 1;
+
+    final Set<double> candidates = <double>{frequency};
+    for (int factor = 2; factor <= harmonicDepth; factor++) {
+      candidates.add(frequency / factor);
+      candidates.add(frequency * factor);
+    }
+
+    for (final double candidate in candidates) {
+      if (candidate <= 0 || candidate > 5000) {
         continue;
       }
-      final double cents = 1200 * (log(frequency / note.frequency) / ln2);
-      if (cents.abs() <= toleranceCents) {
-        return note.stringIndex;
+      for (final ChordNote note in notes) {
+        if (!requiredStringIndexes.contains(note.stringIndex)) {
+          continue;
+        }
+        final double cents = 1200 * (log(candidate / note.frequency) / ln2);
+        final double difference = cents.abs();
+        if (difference < smallestDelta) {
+          smallestDelta = difference;
+          bestMatch = note.stringIndex;
+        }
       }
+    }
+
+    if (bestMatch != null && smallestDelta <= toleranceCents) {
+      return bestMatch;
     }
     return null;
   }

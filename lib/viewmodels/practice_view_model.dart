@@ -6,6 +6,7 @@ import '../data/chord_library.dart';
 import '../models/chord.dart';
 import '../models/instrument.dart';
 import '../services/chord_recognition_service.dart';
+import '../utils/chord_match_tracker.dart';
 
 class PracticeViewModel extends ChangeNotifier {
   PracticeViewModel(this._chordRecognitionService, this.instrument)
@@ -34,11 +35,16 @@ class PracticeViewModel extends ChangeNotifier {
 
 
   double? latestFrequency;
-  final Set<int> _matchedStrings = <int>{};
   Timer? _attemptTimer;
 
   static const Duration _attemptTimeout = Duration(milliseconds: 1500);
   static const int repetitionsRequired = 5;
+  static const double _successRatio = 0.8;
+
+  final ChordMatchTracker _matchTracker = ChordMatchTracker(
+    matchWindow: _attemptTimeout,
+    completionRatio: _successRatio,
+  );
 
   int completedRepetitions = 0;
 
@@ -46,7 +52,8 @@ class PracticeViewModel extends ChangeNotifier {
 
   int get activeStringCount => currentChord.requiredStringIndexes.length;
 
-  List<int> get matchedStrings => _matchedStrings.toList(growable: false);
+  List<int> get matchedStrings =>
+      _matchTracker.matchedStrings(currentChord.requiredStringIndexes);
 
   int get requiredRepetitions => repetitionsRequired;
 
@@ -59,7 +66,7 @@ class PracticeViewModel extends ChangeNotifier {
     lastAttemptSuccessful = null;
     statusMessage =
         'Listening... strum your ${currentChord.name} chord (${completedRepetitions + 1}/$repetitionsRequired)';
-    _matchedStrings.clear();
+    _matchTracker.reset();
     showOpenSettingsButton = false;
     notifyListeners();
 
@@ -84,10 +91,15 @@ class PracticeViewModel extends ChangeNotifier {
     _attemptTimer?.cancel();
     _attemptTimer = null;
 
-    if (!silent && lastAttemptSuccessful == null && _matchedStrings.isNotEmpty) {
+    final Set<int> requiredStrings = currentChord.requiredStringIndexes;
+    if (!silent &&
+        lastAttemptSuccessful == null &&
+        _matchTracker.hasMatches(requiredStrings)) {
       lastAttemptSuccessful = false;
       statusMessage = 'Almost! Try strumming all strings together.';
     }
+
+    _matchTracker.reset();
 
     notifyListeners();
   }
@@ -96,7 +108,7 @@ class PracticeViewModel extends ChangeNotifier {
     await stopListening(silent: true);
     lastAttemptSuccessful = null;
     statusMessage = 'Tap "Start Listening" when ready.';
-    _matchedStrings.clear();
+    _matchTracker.reset();
     latestFrequency = null;
     completedRepetitions = 0;
     celebrationChordIndex = null;
@@ -132,7 +144,7 @@ class PracticeViewModel extends ChangeNotifier {
     celebrationChordIndex = null;
     statusMessage =
         'Ready for ${currentChord.name}. Strum it $repetitionsRequired times to unlock the next chord.';
-    _matchedStrings.clear();
+    _matchTracker.reset();
     latestFrequency = null;
     lastAttemptSuccessful = null;
     completedRepetitions = 0;
@@ -151,18 +163,24 @@ class PracticeViewModel extends ChangeNotifier {
 
   void _handleFrequency(double frequency) {
     latestFrequency = frequency;
-    final int? matchedString = currentChord.matchFrequency(frequency);
+    final Chord chord = currentChord;
+    final int? matchedString = chord.matchFrequency(frequency);
 
-    if (matchedString != null &&
-        currentChord.isStringRequired(matchedString)) {
-      final bool isNew = _matchedStrings.add(matchedString);
+    if (matchedString != null) {
+      final bool isNew = _matchTracker.registerMatch(
+        stringIndex: matchedString,
+        requiredStrings: chord.requiredStringIndexes,
+      );
       if (isNew) {
         _restartAttemptTimer();
+        final int matchedCount =
+            _matchTracker.matchedCount(chord.requiredStringIndexes);
         statusMessage =
-            'Heard ${currentChord.stringLabel(matchedString)} string (${currentChord.notes[matchedString].noteName})';
-        if (_matchedStrings.length >= activeStringCount) {
-          _registerSuccessfulStrum();
-        }
+            'Heard ${chord.stringLabel(matchedString)} string (${chord.notes[matchedString].noteName}) — $matchedCount/${chord.requiredStringIndexes.length} strings detected.';
+      }
+
+      if (_matchTracker.isComplete(chord.requiredStringIndexes)) {
+        _registerSuccessfulStrum();
       }
     }
 
@@ -176,10 +194,10 @@ class PracticeViewModel extends ChangeNotifier {
 
   void _handleAttemptTimeout() {
     _attemptTimer = null;
-    if (_matchedStrings.isEmpty) {
+    if (!_matchTracker.hasMatches(currentChord.requiredStringIndexes)) {
       return;
     }
-    _matchedStrings.clear();
+    _matchTracker.reset();
     if (isListening) {
       lastAttemptSuccessful = false;
       statusMessage =
@@ -219,7 +237,7 @@ class PracticeViewModel extends ChangeNotifier {
           'Great! ${chord.name}: $completedRepetitions/$repetitionsRequired clean strums.';
     }
 
-    _matchedStrings.clear();
+    _matchTracker.reset();
     latestFrequency = null;
     notifyListeners();
   }

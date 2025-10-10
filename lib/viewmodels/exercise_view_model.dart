@@ -7,6 +7,7 @@ import '../data/chord_library.dart';
 import '../models/chord.dart';
 import '../models/instrument.dart';
 import '../services/chord_recognition_service.dart';
+import '../utils/chord_match_tracker.dart';
 
 class ExerciseViewModel extends ChangeNotifier {
   ExerciseViewModel(this._chordRecognitionService, this.instrument)
@@ -22,10 +23,15 @@ class ExerciseViewModel extends ChangeNotifier {
 
   late final StreamSubscription<double> _frequencySubscription;
   final Random _random = Random();
-  final Set<int> _matchedStrings = <int>{};
 
   static const Duration _attemptTimeout = Duration(milliseconds: 1500);
   static const Duration _nextChordDelay = Duration(seconds: 2);
+  static const double _successRatio = 0.8;
+
+  final ChordMatchTracker _matchTracker = ChordMatchTracker(
+    matchWindow: _attemptTimeout,
+    completionRatio: _successRatio,
+  );
 
   late Chord currentChord;
   int? _currentChordIndex;
@@ -51,7 +57,7 @@ class ExerciseViewModel extends ChangeNotifier {
     lastAttemptSuccessful = null;
     statusMessage = 'Listening... Play the ${currentChord.name} chord.';
     showOpenSettingsButton = false;
-    _matchedStrings.clear();
+    _matchTracker.reset();
     notifyListeners();
 
     try {
@@ -75,11 +81,15 @@ class ExerciseViewModel extends ChangeNotifier {
     _attemptTimer?.cancel();
     _attemptTimer = null;
 
-    if (!silent && lastAttemptSuccessful == null && _matchedStrings.isNotEmpty) {
+    if (!silent &&
+        lastAttemptSuccessful == null &&
+        _matchTracker.hasMatches(currentChord.requiredStringIndexes)) {
       lastAttemptSuccessful = false;
       statusMessage =
           'Almost! Try strumming all strings of ${currentChord.name} cleanly.';
     }
+
+    _matchTracker.reset();
 
     notifyListeners();
   }
@@ -91,7 +101,7 @@ class ExerciseViewModel extends ChangeNotifier {
     isChordPatternVisible = false;
     statusMessage =
         'Ready when you are. Press "Start Listening" and strum ${currentChord.name}.';
-    _matchedStrings.clear();
+    _matchTracker.reset();
     notifyListeners();
   }
 
@@ -143,7 +153,7 @@ class ExerciseViewModel extends ChangeNotifier {
     _currentChordIndex = nextIndex;
     currentChord = chords[nextIndex];
 
-    _matchedStrings.clear();
+    _matchTracker.reset();
     lastAttemptSuccessful = null;
     isPreparingNextChord = false;
     isChordPatternVisible = false;
@@ -158,25 +168,26 @@ class ExerciseViewModel extends ChangeNotifier {
       return;
     }
 
-    final int? matchedString =
-        currentChord.matchFrequency(frequency, toleranceCents: 35);
+    final Chord chord = currentChord;
+    final int? matchedString = chord.matchFrequency(frequency);
 
-    if (matchedString == null ||
-        !currentChord.isStringRequired(matchedString)) {
+    if (matchedString == null) {
       return;
     }
 
-    final bool isNew = _matchedStrings.add(matchedString);
-    if (!isNew) {
-      return;
+    final bool isNew = _matchTracker.registerMatch(
+      stringIndex: matchedString,
+      requiredStrings: chord.requiredStringIndexes,
+    );
+    if (isNew) {
+      _restartAttemptTimer();
+      final int matchedCount =
+          _matchTracker.matchedCount(chord.requiredStringIndexes);
+      statusMessage =
+          'Heard the ${chord.stringLabel(matchedString)} string (${chord.notes[matchedString].noteName}) — $matchedCount/${chord.requiredStringIndexes.length} strings detected.';
     }
 
-    _restartAttemptTimer();
-    statusMessage =
-        'Heard the ${currentChord.stringLabel(matchedString)} string (${currentChord.notes[matchedString].noteName}).';
-
-    if (_matchedStrings.length >=
-        currentChord.requiredStringIndexes.length) {
+    if (_matchTracker.isComplete(chord.requiredStringIndexes)) {
       _registerSuccessfulAttempt();
     }
 
@@ -190,11 +201,11 @@ class ExerciseViewModel extends ChangeNotifier {
 
   void _handleAttemptTimeout() {
     _attemptTimer = null;
-    if (_matchedStrings.isEmpty) {
+    if (!_matchTracker.hasMatches(currentChord.requiredStringIndexes)) {
       return;
     }
 
-    _matchedStrings.clear();
+    _matchTracker.reset();
     if (isListening) {
       lastAttemptSuccessful = false;
       statusMessage =
