@@ -254,6 +254,7 @@ class ChordLibrary {
           'Angle your fingers so the open G and high E strings ring freely.',
           'Keep your thumb centred on the back of the neck for better reach.',
         ],
+        requiredStringIndexes: const <int>{1, 2, 3, 4, 5},
         stringTunings: _guitarTunings,
       ),
       Chord(
@@ -270,6 +271,7 @@ class ChordLibrary {
           'Press the D, G, and B strings with relaxed knuckles so they ring together.',
           'Strum mainly from the A string downward for a crisp rhythm sound.',
         ],
+        requiredStringIndexes: const <int>{1, 2, 3, 4, 5},
         stringTunings: _guitarTunings,
       ),
       Chord(
@@ -318,6 +320,7 @@ class ChordLibrary {
           'Aim your pick from the D string downward to keep the low strings quiet.',
           'Curve each fingertip so the notes on the top strings ring without buzz.',
         ],
+        requiredStringIndexes: const <int>{2, 3, 4, 5},
         stringTunings: _guitarTunings,
       ),
       Chord(
@@ -334,6 +337,7 @@ class ChordLibrary {
           'Let your wrist relax so the index finger comfortably reaches the first fret.',
           'Listen for the open high E string to shimmer above the chord.',
         ],
+        requiredStringIndexes: const <int>{1, 2, 3, 4, 5},
         stringTunings: _guitarTunings,
       ),
       Chord(
@@ -365,6 +369,7 @@ class ChordLibrary {
           'Anchor your index finger first, then stack the other fingers to keep the shape compact.',
           'Strum from the D string downward so the bass note stays clear.',
         ],
+        requiredStringIndexes: const <int>{2, 3, 4, 5},
         stringTunings: _guitarTunings,
       ),
     ];
