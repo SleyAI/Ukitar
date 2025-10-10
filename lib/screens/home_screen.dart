@@ -342,7 +342,7 @@ class _HomeIllustration extends StatelessWidget {
     final double imageHeight = computedHeight > 0 ? computedHeight : 120;
 
     return Image.asset(
-      'images/ukulele.png',
+      'assets/images/alissa.png',
 
       height: imageHeight,
       fit: BoxFit.contain,
