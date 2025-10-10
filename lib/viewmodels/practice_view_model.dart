@@ -6,19 +6,29 @@ import '../data/chord_library.dart';
 import '../models/chord.dart';
 import '../models/instrument.dart';
 import '../services/chord_recognition_service.dart';
+import '../services/practice_progress_repository.dart';
 import '../utils/chord_match_tracker.dart';
 
 class PracticeViewModel extends ChangeNotifier {
-  PracticeViewModel(this._chordRecognitionService, this.instrument)
-      : chords = ChordLibrary.beginnerCourse(instrument) {
+  PracticeViewModel(
+    this._chordRecognitionService,
+    this.instrument, {
+    PracticeProgressRepository? progressRepository,
+  })  : chords = ChordLibrary.beginnerCourse(instrument),
+        _progressRepository =
+            progressRepository ?? SharedPreferencesPracticeProgressRepository() {
     _frequencySubscription =
         _chordRecognitionService.frequencyStream.listen(_handleFrequency);
-    unawaited(resetAttempt());
+    _initializationFuture = _initialize();
   }
 
   final ChordRecognitionService _chordRecognitionService;
   final List<Chord> chords;
   final InstrumentType instrument;
+  final PracticeProgressRepository _progressRepository;
+  late final Future<void> _initializationFuture;
+
+  Future<void> get initialization => _initializationFuture;
 
   late final StreamSubscription<double> _frequencySubscription;
 
@@ -102,6 +112,28 @@ class PracticeViewModel extends ChangeNotifier {
     _matchTracker.reset();
 
     notifyListeners();
+  }
+
+  Future<void> _initialize() async {
+    await resetAttempt();
+    final int? savedUnlocked =
+        await _progressRepository.loadUnlockedChords(instrument);
+    if (savedUnlocked != null) {
+      final int normalized = _normalizeUnlocked(savedUnlocked);
+      unlockedChords = normalized;
+      currentChordIndex = normalized - 1;
+      notifyListeners();
+    }
+  }
+
+  int _normalizeUnlocked(int unlocked) {
+    if (unlocked < 1) {
+      return 1;
+    }
+    if (unlocked > chords.length) {
+      return chords.length;
+    }
+    return unlocked;
   }
 
   Future<void> resetAttempt() async {
@@ -228,6 +260,8 @@ class PracticeViewModel extends ChangeNotifier {
         completedRepetitions = 0;
         statusMessage =
             'Fantastic! You nailed $repetitionsRequired clean strums of ${chord.name}. Next up: $nextChordName. Tap "Start Listening" when ready.';
+        unawaited(_progressRepository.saveUnlockedChords(
+            instrument, unlockedChords));
       } else {
         statusMessage =
             'Amazing! You mastered every chord in the course.';

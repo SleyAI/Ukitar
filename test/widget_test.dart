@@ -5,8 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 import 'package:ukitar/models/chord.dart';
+import 'package:ukitar/models/instrument.dart';
 import 'package:ukitar/screens/practice_screen.dart';
 import 'package:ukitar/services/chord_recognition_service.dart';
+import 'package:ukitar/services/practice_progress_repository.dart';
 import 'package:ukitar/viewmodels/practice_view_model.dart';
 
 void main() {
@@ -14,7 +16,15 @@ void main() {
     testWidgets('locked chords remain unavailable until unlocked',
         (WidgetTester tester) async {
       final FakeChordRecognitionService service = FakeChordRecognitionService();
-      final PracticeViewModel model = PracticeViewModel(service);
+      final InMemoryPracticeProgressRepository progressRepository =
+          InMemoryPracticeProgressRepository();
+      final PracticeViewModel model = PracticeViewModel(
+        service,
+        InstrumentType.ukulele,
+        progressRepository: progressRepository,
+      );
+
+      await model.initialization;
 
       addTearDown(() async => service.dispose());
       addTearDown(model.dispose);
@@ -22,7 +32,9 @@ void main() {
       await tester.pumpWidget(
         ChangeNotifierProvider<PracticeViewModel>.value(
           value: model,
-          child: const MaterialApp(home: PracticeScreen()),
+          child: const MaterialApp(
+            home: PracticeScreen(instrument: InstrumentType.ukulele),
+          ),
         ),
       );
 
@@ -45,7 +57,15 @@ void main() {
     testWidgets('five clean strums unlock the next chord',
         (WidgetTester tester) async {
       final FakeChordRecognitionService service = FakeChordRecognitionService();
-      final PracticeViewModel model = PracticeViewModel(service);
+      final InMemoryPracticeProgressRepository progressRepository =
+          InMemoryPracticeProgressRepository();
+      final PracticeViewModel model = PracticeViewModel(
+        service,
+        InstrumentType.ukulele,
+        progressRepository: progressRepository,
+      );
+
+      await model.initialization;
 
       addTearDown(() async => service.dispose());
       addTearDown(model.dispose);
@@ -53,7 +73,9 @@ void main() {
       await tester.pumpWidget(
         ChangeNotifierProvider<PracticeViewModel>.value(
           value: model,
-          child: const MaterialApp(home: PracticeScreen()),
+          child: const MaterialApp(
+            home: PracticeScreen(instrument: InstrumentType.ukulele),
+          ),
         ),
       );
 
@@ -73,6 +95,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(model.unlockedChords, 2);
+      expect(
+        progressRepository.getUnlocked(InstrumentType.ukulele),
+        2,
+      );
       expect(model.currentChord.name, 'A Minor');
       expect(find.byIcon(Icons.lock), findsNWidgets(2));
       expect(find.text('A Minor'), findsNWidgets(2));
@@ -80,6 +106,44 @@ void main() {
           findsOneWidget);
     });
   });
+
+  test('progress repository persists unlocked chords per instrument', () async {
+    final InMemoryPracticeProgressRepository progressRepository =
+        InMemoryPracticeProgressRepository();
+    final FakeChordRecognitionService service = FakeChordRecognitionService();
+
+    addTearDown(() async => service.dispose());
+
+    await progressRepository.saveUnlockedChords(InstrumentType.guitar, 3);
+
+    final PracticeViewModel secondSession = PracticeViewModel(
+      service,
+      InstrumentType.guitar,
+      progressRepository: progressRepository,
+    );
+
+    addTearDown(secondSession.dispose);
+
+    await secondSession.initialization;
+    expect(secondSession.unlockedChords, 3);
+  });
+}
+
+class InMemoryPracticeProgressRepository implements PracticeProgressRepository {
+  final Map<InstrumentType, int> _storage = <InstrumentType, int>{};
+
+  int? getUnlocked(InstrumentType instrument) => _storage[instrument];
+
+  @override
+  Future<int?> loadUnlockedChords(InstrumentType instrument) async {
+    return _storage[instrument];
+  }
+
+  @override
+  Future<void> saveUnlockedChords(
+      InstrumentType instrument, int unlocked) async {
+    _storage[instrument] = unlocked;
+  }
 }
 
 Future<void> _playChordOnce(
