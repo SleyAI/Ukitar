@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../models/instrument.dart';
 import '../services/chord_recognition_service.dart';
+import '../services/practice_progress_repository.dart';
 import '../utils/url_opener.dart';
 import '../viewmodels/practice_view_model.dart';
 import '../widgets/chord_diagram.dart';
@@ -17,10 +18,39 @@ class PracticeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final PracticeViewModel? existingModel = _maybeReadExistingModel(context);
+    if (existingModel != null) {
+      return const _PracticeView();
+    }
+
+    final PracticeProgressRepository progressRepository =
+        _resolveProgressRepository(context);
+
     return ChangeNotifierProvider<PracticeViewModel>(
-      create: (_) => PracticeViewModel(ChordRecognitionService(), instrument),
+      create: (_) => PracticeViewModel(
+        ChordRecognitionService(),
+        instrument,
+        progressRepository: progressRepository,
+      ),
       child: const _PracticeView(),
     );
+  }
+
+  PracticeViewModel? _maybeReadExistingModel(BuildContext context) {
+    try {
+      return Provider.of<PracticeViewModel>(context, listen: false);
+    } on ProviderNotFoundException {
+      return null;
+    }
+  }
+
+  PracticeProgressRepository _resolveProgressRepository(
+      BuildContext context) {
+    try {
+      return Provider.of<PracticeProgressRepository>(context, listen: false);
+    } on ProviderNotFoundException {
+      return SharedPreferencesPracticeProgressRepository();
+    }
   }
 }
 
