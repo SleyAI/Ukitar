@@ -24,6 +24,8 @@ class PracticeViewModel extends ChangeNotifier {
 
   int unlockedChords = 1;
   int currentChordIndex = 0;
+  int? celebrationChordIndex;
+  int celebrationEventId = 0;
 
   bool isListening = false;
   bool? lastAttemptSuccessful;
@@ -97,6 +99,7 @@ class PracticeViewModel extends ChangeNotifier {
     _matchedStrings.clear();
     latestFrequency = null;
     completedRepetitions = 0;
+    celebrationChordIndex = null;
     _attemptTimer?.cancel();
     _attemptTimer = null;
 
@@ -126,6 +129,7 @@ class PracticeViewModel extends ChangeNotifier {
     }
 
     currentChordIndex = index;
+    celebrationChordIndex = null;
     statusMessage =
         'Ready for ${currentChord.name}. Strum it $repetitionsRequired times to unlock the next chord.';
     _matchedStrings.clear();
@@ -188,6 +192,7 @@ class PracticeViewModel extends ChangeNotifier {
     _attemptTimer = null;
 
     final Chord chord = currentChord;
+    celebrationChordIndex = null;
     completedRepetitions++;
     lastAttemptSuccessful = true;
 
@@ -198,6 +203,8 @@ class PracticeViewModel extends ChangeNotifier {
       if (hasMoreChords) {
         unlockedChords++;
         currentChordIndex = unlockedChords - 1;
+        celebrationChordIndex = currentChordIndex;
+        celebrationEventId++;
         final String nextChordName = currentChord.name;
         completedRepetitions = 0;
         statusMessage =
