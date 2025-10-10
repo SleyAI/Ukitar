@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
 
 import 'package:ukitar/models/chord.dart';
 import 'package:ukitar/models/instrument.dart';
@@ -30,8 +31,15 @@ void main() {
       addTearDown(model.dispose);
 
       await tester.pumpWidget(
-        ChangeNotifierProvider<PracticeViewModel>.value(
-          value: model,
+        MultiProvider(
+          providers: <SingleChildWidget>[
+            Provider<PracticeProgressRepository>.value(
+              value: progressRepository,
+            ),
+            ChangeNotifierProvider<PracticeViewModel>.value(
+              value: model,
+            ),
+          ],
           child: const MaterialApp(
             home: PracticeScreen(instrument: InstrumentType.ukulele),
           ),
@@ -71,8 +79,15 @@ void main() {
       addTearDown(model.dispose);
 
       await tester.pumpWidget(
-        ChangeNotifierProvider<PracticeViewModel>.value(
-          value: model,
+        MultiProvider(
+          providers: <SingleChildWidget>[
+            Provider<PracticeProgressRepository>.value(
+              value: progressRepository,
+            ),
+            ChangeNotifierProvider<PracticeViewModel>.value(
+              value: model,
+            ),
+          ],
           child: const MaterialApp(
             home: PracticeScreen(instrument: InstrumentType.ukulele),
           ),
