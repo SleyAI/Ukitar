@@ -68,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 75),
+            const SizedBox(height: 40),
             _FeatureBullet(
               icon: Icons.auto_graph,
               title: 'Step-by-step course',
@@ -80,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: 'Microphone feedback',
               description: 'Your instrument is the controller—strum to progress.',
             ),
-            const Spacer(),
+            const SizedBox(height: 48),
             _InstrumentSelection(
               selectedInstrument: _selectedInstrument,
               onInstrumentSelected: _onInstrumentSelected,
