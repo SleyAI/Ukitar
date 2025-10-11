@@ -117,11 +117,32 @@ class ChordRecognitionService {
       return null;
     }
 
+    List<FrequencyPeak> peaks = spectrum.entries
+        .map(
+          (MapEntry<double, double> entry) => FrequencyPeak(
+            frequency: entry.key,
+            magnitude: entry.value / totalEnergy,
+          ),
+        )
+        .toList(growable: false)
+      ..sort(
+        (FrequencyPeak a, FrequencyPeak b) =>
+            b.magnitude.compareTo(a.magnitude),
+      );
+
+    const int maxPeaks = 16;
+    if (peaks.length > maxPeaks) {
+      peaks = List<FrequencyPeak>.unmodifiable(peaks.sublist(0, maxPeaks));
+    } else {
+      peaks = List<FrequencyPeak>.unmodifiable(peaks);
+    }
+
     final List<double> chroma = _buildChromagram(spectrum);
     return ChordDetectionFrame(
       chroma: chroma,
       fundamental: fundamental,
       energy: totalEnergy,
+      peaks: peaks,
     );
   }
 
@@ -253,15 +274,28 @@ class ChordDetectionFrame {
   ChordDetectionFrame({
     required this.chroma,
     required this.energy,
+    required List<FrequencyPeak> peaks,
     this.fundamental,
-  }) : assert(
+  })  : assert(
           chroma.length == 12,
           'Chromagram must contain exactly 12 pitch-class bins.',
-        );
+        ),
+        peaks = List<FrequencyPeak>.unmodifiable(peaks);
 
   final List<double> chroma;
   final double energy;
   final double? fundamental;
+  final List<FrequencyPeak> peaks;
+}
+
+class FrequencyPeak {
+  const FrequencyPeak({
+    required this.frequency,
+    required this.magnitude,
+  });
+
+  final double frequency;
+  final double magnitude;
 }
 
 class _FrequencyComponent {

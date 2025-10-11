@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 
 import '../data/chord_library.dart';
@@ -195,42 +197,86 @@ class PracticeViewModel extends ChangeNotifier {
 
   void _handleDetection(ChordDetectionFrame frame) {
     final Chord chord = currentChord;
-    double peak = 0;
+    double chromaPeak = 0;
     for (final double value in frame.chroma) {
-      if (value > peak) {
-        peak = value;
+      if (value > chromaPeak) {
+        chromaPeak = value;
       }
     }
-    if (frame.energy < 0.2 || peak < 0.45) {
+    if (frame.energy < 0.2 || chromaPeak < 0.45) {
       return;
     }
 
-    final int? matchedString = chord.matchPitchClasses(
-      frame.chroma,
-      fundamental: frame.fundamental,
-    );
+    final Set<int> matchedStrings = _identifyMatches(chord, frame);
 
-    latestFrequency = frame.fundamental;
+    latestFrequency = frame.fundamental ??
+        (frame.peaks.isNotEmpty ? frame.peaks.first.frequency : null);
 
-    if (matchedString != null) {
+    if (matchedStrings.isEmpty) {
+      notifyListeners();
+      return;
+    }
+
+    bool registeredNewMatch = false;
+    int? highlightedString;
+
+    for (final int stringIndex in matchedStrings) {
       final bool isNew = _matchTracker.registerMatch(
-        stringIndex: matchedString,
+        stringIndex: stringIndex,
         requiredStrings: chord.requiredStringIndexes,
       );
       if (isNew) {
-        _restartAttemptTimer();
-        final int matchedCount =
-            _matchTracker.matchedCount(chord.requiredStringIndexes);
-        statusMessage =
-            'Heard ${chord.stringLabel(matchedString)} string (${chord.notes[matchedString].noteName}) — $matchedCount/${chord.requiredStringIndexes.length} strings detected.';
-      }
-
-      if (_matchTracker.isComplete(chord.requiredStringIndexes)) {
-        _registerSuccessfulStrum();
+        registeredNewMatch = true;
+        highlightedString = stringIndex;
       }
     }
 
+    if (registeredNewMatch && highlightedString != null) {
+      _restartAttemptTimer();
+      final int matchedCount =
+          _matchTracker.matchedCount(chord.requiredStringIndexes);
+      statusMessage =
+          'Heard ${chord.stringLabel(highlightedString)} string (${chord.notes[highlightedString].noteName}) — $matchedCount/${chord.requiredStringIndexes.length} strings detected.';
+    }
+
+    if (_matchTracker.isComplete(chord.requiredStringIndexes)) {
+      _registerSuccessfulStrum();
+    }
+
     notifyListeners();
+  }
+
+  Set<int> _identifyMatches(Chord chord, ChordDetectionFrame frame) {
+    final Set<int> matches = <int>{};
+
+    if (frame.peaks.isNotEmpty) {
+      final double dominant = frame.peaks.first.magnitude;
+      final double threshold = max(0.08, dominant * 0.35);
+      for (final FrequencyPeak peak in frame.peaks) {
+        if (peak.magnitude < threshold) {
+          continue;
+        }
+        final int? matched = chord.matchFrequency(
+          peak.frequency,
+          toleranceCents: 35,
+        );
+        if (matched != null) {
+          matches.add(matched);
+        }
+      }
+    }
+
+    if (matches.isEmpty) {
+      final int? fallback = chord.matchPitchClasses(
+        frame.chroma,
+        fundamental: frame.fundamental,
+      );
+      if (fallback != null) {
+        matches.add(fallback);
+      }
+    }
+
+    return matches;
   }
 
   void _restartAttemptTimer() {

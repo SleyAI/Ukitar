@@ -169,35 +169,43 @@ class ExerciseViewModel extends ChangeNotifier {
     }
 
     final Chord chord = currentChord;
-    double peak = 0;
+    double chromaPeak = 0;
     for (final double value in frame.chroma) {
-      if (value > peak) {
-        peak = value;
+      if (value > chromaPeak) {
+        chromaPeak = value;
       }
     }
-    if (frame.energy < 0.2 || peak < 0.45) {
+    if (frame.energy < 0.2 || chromaPeak < 0.45) {
       return;
     }
 
-    final int? matchedString = chord.matchPitchClasses(
-      frame.chroma,
-      fundamental: frame.fundamental,
-    );
+    final Set<int> matchedStrings = _identifyMatches(chord, frame);
 
-    if (matchedString == null) {
+    if (matchedStrings.isEmpty) {
+      notifyListeners();
       return;
     }
 
-    final bool isNew = _matchTracker.registerMatch(
-      stringIndex: matchedString,
-      requiredStrings: chord.requiredStringIndexes,
-    );
-    if (isNew) {
+    bool registeredNewMatch = false;
+    int? highlightedString;
+
+    for (final int stringIndex in matchedStrings) {
+      final bool isNew = _matchTracker.registerMatch(
+        stringIndex: stringIndex,
+        requiredStrings: chord.requiredStringIndexes,
+      );
+      if (isNew) {
+        registeredNewMatch = true;
+        highlightedString = stringIndex;
+      }
+    }
+
+    if (registeredNewMatch && highlightedString != null) {
       _restartAttemptTimer();
       final int matchedCount =
           _matchTracker.matchedCount(chord.requiredStringIndexes);
       statusMessage =
-          'Heard the ${chord.stringLabel(matchedString)} string (${chord.notes[matchedString].noteName}) — $matchedCount/${chord.requiredStringIndexes.length} strings detected.';
+          'Heard the ${chord.stringLabel(highlightedString)} string (${chord.notes[highlightedString].noteName}) — $matchedCount/${chord.requiredStringIndexes.length} strings detected.';
     }
 
     if (_matchTracker.isComplete(chord.requiredStringIndexes)) {
@@ -205,6 +213,39 @@ class ExerciseViewModel extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  Set<int> _identifyMatches(Chord chord, ChordDetectionFrame frame) {
+    final Set<int> matches = <int>{};
+
+    if (frame.peaks.isNotEmpty) {
+      final double dominant = frame.peaks.first.magnitude;
+      final double threshold = max(0.08, dominant * 0.35);
+      for (final FrequencyPeak peak in frame.peaks) {
+        if (peak.magnitude < threshold) {
+          continue;
+        }
+        final int? matched = chord.matchFrequency(
+          peak.frequency,
+          toleranceCents: 35,
+        );
+        if (matched != null) {
+          matches.add(matched);
+        }
+      }
+    }
+
+    if (matches.isEmpty) {
+      final int? fallback = chord.matchPitchClasses(
+        frame.chroma,
+        fundamental: frame.fundamental,
+      );
+      if (fallback != null) {
+        matches.add(fallback);
+      }
+    }
+
+    return matches;
   }
 
   void _restartAttemptTimer() {
