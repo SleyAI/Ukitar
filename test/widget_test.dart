@@ -207,6 +207,9 @@ class FakeChordRecognitionService extends ChordRecognitionService {
         chroma: chroma,
         energy: 1.0,
         fundamental: note.frequency,
+        peaks: <FrequencyPeak>[
+          FrequencyPeak(frequency: note.frequency, magnitude: 1.0),
+        ],
       ),
     );
   }
