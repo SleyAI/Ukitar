@@ -90,6 +90,50 @@ class Chord {
     return null;
   }
 
+  int? matchPitchClasses(
+    List<double> chroma, {
+    double minEnergy = 0.3,
+    double neighborWeight = 0.25,
+    double fallbackToleranceCents = 35,
+    double? fundamental,
+  }) {
+    if (chroma.length != 12) {
+      throw ArgumentError('Chromagram must contain exactly 12 bins.');
+    }
+
+    double bestScore = minEnergy;
+    int? bestMatch;
+
+    for (final ChordNote note in notes) {
+      if (!requiredStringIndexes.contains(note.stringIndex)) {
+        continue;
+      }
+      final int pitchClass = note.pitchClass;
+      final double baseEnergy = chroma[pitchClass];
+      final double neighborEnergy =
+          (chroma[(pitchClass + 11) % 12] + chroma[(pitchClass + 1) % 12]) / 2;
+      final double score =
+          baseEnergy * (1 - neighborWeight) + neighborEnergy * neighborWeight;
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = note.stringIndex;
+      }
+    }
+
+    if (bestMatch != null) {
+      return bestMatch;
+    }
+
+    if (fundamental != null) {
+      return matchFrequency(
+        fundamental,
+        toleranceCents: fallbackToleranceCents,
+      );
+    }
+
+    return null;
+  }
+
   String stringLabel(int index) => stringTunings[index].label;
 
   ChordNote _buildNoteForString(int stringIndex, int fret) {
@@ -101,6 +145,7 @@ class Chord {
       stringIndex: stringIndex,
       midi: midi,
       noteName: _noteNameFromMidi(midi),
+      pitchClass: midi % 12,
       frequency: frequency,
     );
   }
@@ -172,12 +217,14 @@ class ChordNote {
     required this.stringIndex,
     required this.midi,
     required this.noteName,
+    required this.pitchClass,
     required this.frequency,
   });
 
   final int stringIndex;
   final int midi;
   final String noteName;
+  final int pitchClass;
   final double frequency;
 }
 

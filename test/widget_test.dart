@@ -167,7 +167,7 @@ Future<void> _playChordOnce(
   FakeChordRecognitionService service,
 ) async {
   for (final ChordNote note in model.currentChord.notes) {
-    service.emitFrequency(note.frequency);
+    service.emitNote(note);
     await tester.pump();
   }
 }
@@ -175,13 +175,13 @@ Future<void> _playChordOnce(
 class FakeChordRecognitionService extends ChordRecognitionService {
   FakeChordRecognitionService();
 
-  final StreamController<double> _controller =
-      StreamController<double>.broadcast();
+  final StreamController<ChordDetectionFrame> _controller =
+      StreamController<ChordDetectionFrame>.broadcast();
   bool _closed = false;
   Future<void>? _disposeFuture;
 
   @override
-  Stream<double> get frequencyStream => _controller.stream;
+  Stream<ChordDetectionFrame> get detectionStream => _controller.stream;
 
   @override
   Future<void> startListening() async {}
@@ -196,10 +196,19 @@ class FakeChordRecognitionService extends ChordRecognitionService {
   Future<void> dispose() =>
       _disposeFuture ??= _disposeInternal();
 
-  void emitFrequency(double frequency) {
-    if (!_closed) {
-      _controller.add(frequency);
+  void emitNote(ChordNote note) {
+    if (_closed) {
+      return;
     }
+    final List<double> chroma = List<double>.filled(12, 0);
+    chroma[note.pitchClass] = 1.0;
+    _controller.add(
+      ChordDetectionFrame(
+        chroma: chroma,
+        energy: 1.0,
+        fundamental: note.frequency,
+      ),
+    );
   }
 
   Future<void> _disposeInternal() async {
