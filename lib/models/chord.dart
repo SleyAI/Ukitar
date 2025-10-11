@@ -127,6 +127,14 @@ class Chord {
       }
     }
 
+    final int? dominantMatch = _matchDominantPitchClass(
+      chroma,
+      requiredStrings: requiredStringIndexes,
+    );
+    if (dominantMatch != null) {
+      return dominantMatch;
+    }
+
     if (prediction != null &&
         prediction.confidence >= minEnergy * 0.6 &&
         requiredStringIndexes.contains(prediction.stringIndex)) {
@@ -137,6 +145,54 @@ class Chord {
   }
 
   String stringLabel(int index) => stringTunings[index].label;
+
+  int? _matchDominantPitchClass(
+    List<double> chroma, {
+    required Set<int> requiredStrings,
+  }) {
+    int? bestPitchClass;
+    double bestValue = 0;
+    double runnerUpValue = 0;
+
+    for (int index = 0; index < chroma.length; index++) {
+      final double value = chroma[index];
+      if (value.isNaN || value.isInfinite || value <= 0) {
+        continue;
+      }
+      if (value > bestValue) {
+        runnerUpValue = bestValue;
+        bestValue = value;
+        bestPitchClass = index;
+      } else if (value > runnerUpValue) {
+        runnerUpValue = value;
+      }
+    }
+
+    if (bestPitchClass == null || bestValue < 0.3) {
+      return null;
+    }
+
+    if (bestValue - runnerUpValue < 0.12 &&
+        (runnerUpValue / bestValue) > 0.55) {
+      return null;
+    }
+
+    final List<int> candidates = <int>[];
+    for (final ChordNote note in _notes) {
+      if (!requiredStrings.contains(note.stringIndex)) {
+        continue;
+      }
+      if (note.pitchClass == bestPitchClass) {
+        candidates.add(note.stringIndex);
+      }
+    }
+
+    if (candidates.length == 1) {
+      return candidates.first;
+    }
+
+    return null;
+  }
 
   ChordNote _buildNoteForString(int stringIndex, int fret) {
     final StringTuning tuning = stringTunings[stringIndex];
