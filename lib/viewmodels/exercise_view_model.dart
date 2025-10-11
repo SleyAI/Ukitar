@@ -12,8 +12,8 @@ import '../utils/chord_match_tracker.dart';
 class ExerciseViewModel extends ChangeNotifier {
   ExerciseViewModel(this._chordRecognitionService, this.instrument)
       : chords = ChordLibrary.beginnerCourse(instrument) {
-    _frequencySubscription =
-        _chordRecognitionService.frequencyStream.listen(_handleFrequency);
+    _detectionSubscription =
+        _chordRecognitionService.detectionStream.listen(_handleDetection);
     _prepareNextChord(initial: true);
   }
 
@@ -21,7 +21,7 @@ class ExerciseViewModel extends ChangeNotifier {
   final List<Chord> chords;
   final InstrumentType instrument;
 
-  late final StreamSubscription<double> _frequencySubscription;
+  late final StreamSubscription<ChordDetectionFrame> _detectionSubscription;
   final Random _random = Random();
 
   static const Duration _attemptTimeout = Duration(milliseconds: 1500);
@@ -132,7 +132,7 @@ class ExerciseViewModel extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     unawaited(_chordRecognitionService.dispose());
-    unawaited(_frequencySubscription.cancel());
+    unawaited(_detectionSubscription.cancel());
     _attemptTimer?.cancel();
     super.dispose();
   }
@@ -163,13 +163,26 @@ class ExerciseViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _handleFrequency(double frequency) {
+  void _handleDetection(ChordDetectionFrame frame) {
     if (!isListening) {
       return;
     }
 
     final Chord chord = currentChord;
-    final int? matchedString = chord.matchFrequency(frequency);
+    double peak = 0;
+    for (final double value in frame.chroma) {
+      if (value > peak) {
+        peak = value;
+      }
+    }
+    if (frame.energy < 0.2 || peak < 0.45) {
+      return;
+    }
+
+    final int? matchedString = chord.matchPitchClasses(
+      frame.chroma,
+      fundamental: frame.fundamental,
+    );
 
     if (matchedString == null) {
       return;

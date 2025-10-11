@@ -17,8 +17,8 @@ class PracticeViewModel extends ChangeNotifier {
   })  : chords = ChordLibrary.beginnerCourse(instrument),
         _progressRepository =
             progressRepository ?? SharedPreferencesPracticeProgressRepository() {
-    _frequencySubscription =
-        _chordRecognitionService.frequencyStream.listen(_handleFrequency);
+    _detectionSubscription =
+        _chordRecognitionService.detectionStream.listen(_handleDetection);
     _initializationFuture = _initialize();
   }
 
@@ -30,7 +30,7 @@ class PracticeViewModel extends ChangeNotifier {
 
   Future<void> get initialization => _initializationFuture;
 
-  late final StreamSubscription<double> _frequencySubscription;
+  late final StreamSubscription<ChordDetectionFrame> _detectionSubscription;
 
 
   int unlockedChords = 1;
@@ -188,15 +188,29 @@ class PracticeViewModel extends ChangeNotifier {
   @override
   void dispose() {
     unawaited(_chordRecognitionService.dispose());
-    unawaited(_frequencySubscription.cancel());
+    unawaited(_detectionSubscription.cancel());
     _attemptTimer?.cancel();
     super.dispose();
   }
 
-  void _handleFrequency(double frequency) {
-    latestFrequency = frequency;
+  void _handleDetection(ChordDetectionFrame frame) {
     final Chord chord = currentChord;
-    final int? matchedString = chord.matchFrequency(frequency);
+    double peak = 0;
+    for (final double value in frame.chroma) {
+      if (value > peak) {
+        peak = value;
+      }
+    }
+    if (frame.energy < 0.2 || peak < 0.45) {
+      return;
+    }
+
+    final int? matchedString = chord.matchPitchClasses(
+      frame.chroma,
+      fundamental: frame.fundamental,
+    );
+
+    latestFrequency = frame.fundamental;
 
     if (matchedString != null) {
       final bool isNew = _matchTracker.registerMatch(
