@@ -223,7 +223,7 @@ class ChordRecognitionService {
       final double next = chroma[(i + 1) % 12];
       final double value =
           current * (1 - (2 * smoothing)) + smoothing * (previous + next);
-      smoothed[i] = value < 0 ? 0 : value;
+      smoothed[i] = value < 0 ? 0.0 : value;
     }
 
     double maxValue = 0;
@@ -238,7 +238,7 @@ class ChordRecognitionService {
     }
 
     return smoothed
-        .map((double value) => value <= 0 ? 0 : value / maxValue)
+        .map((double value) => value <= 0 ? 0.0 : value / maxValue)
         .toList();
   }
 }
