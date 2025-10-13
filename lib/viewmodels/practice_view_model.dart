@@ -275,22 +275,31 @@ class PracticeViewModel extends ChangeNotifier {
 
     if (completedRepetitions >= repetitionsRequired) {
       final bool hasMoreChords = unlockedChords < chords.length;
-      unawaited(stopListening(silent: true));
+      final bool practicingLatestUnlockedChord =
+          currentChordIndex == unlockedChords - 1;
 
-      if (hasMoreChords) {
-        unlockedChords++;
-        currentChordIndex = unlockedChords - 1;
-        celebrationChordIndex = currentChordIndex;
-        celebrationEventId++;
-        final String nextChordName = currentChord.name;
+      if (practicingLatestUnlockedChord) {
+        unawaited(stopListening(silent: true));
+
+        if (hasMoreChords) {
+          unlockedChords++;
+          currentChordIndex = unlockedChords - 1;
+          celebrationChordIndex = currentChordIndex;
+          celebrationEventId++;
+          final String nextChordName = currentChord.name;
+          completedRepetitions = 0;
+          statusMessage =
+              'Fantastic! You nailed $repetitionsRequired clean strums of ${chord.name}. Next up: $nextChordName. Tap "Start Listening" when ready.';
+          unawaited(_progressRepository.saveUnlockedChords(
+              instrument, unlockedChords));
+        } else {
+          statusMessage =
+              'Amazing! You mastered every chord in the course.';
+        }
+      } else {
         completedRepetitions = 0;
         statusMessage =
-            'Fantastic! You nailed $repetitionsRequired clean strums of ${chord.name}. Next up: $nextChordName. Tap "Start Listening" when ready.';
-        unawaited(_progressRepository.saveUnlockedChords(
-            instrument, unlockedChords));
-      } else {
-        statusMessage =
-            'Amazing! You mastered every chord in the course.';
+            'Fantastic! You nailed $repetitionsRequired clean strums of ${chord.name}. Keep practicing or move on when you\'re ready.';
       }
     } else {
       statusMessage =
