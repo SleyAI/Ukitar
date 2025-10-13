@@ -65,12 +65,12 @@ Set<int> identifyChordStringMatches(
   }
 
   final double chromaFloor =
-      chromaPeak > 0 ? max(0.24, chromaPeak * 0.48) : 0.24;
+      chromaPeak > 0 ? max(0.3, chromaPeak * 0.55) : 0.3;
   final double constantQFloor =
-      constantQPeak > 0 ? max(0.06, constantQPeak * 0.42) : 0.06;
+      constantQPeak > 0 ? max(0.12, constantQPeak * 0.5) : 0.12;
   final double peakFloor = strongestPeakEvidence > 0
-      ? max(0.08, strongestPeakEvidence * 0.42)
-      : 0.08;
+      ? max(0.12, strongestPeakEvidence * 0.5)
+      : 0.12;
 
   final Set<int> matches = <int>{};
 
@@ -102,17 +102,25 @@ Set<int> identifyChordStringMatches(
 
     final bool moderateAgreement =
         peakEnergy >= peakFloor * 0.85 &&
-            chromaEnergy >= chromaFloor * 0.75 &&
-            constantQEnergy >= max(0.04, constantQFloor * 0.6);
+            chromaEnergy >= chromaFloor * 0.78 &&
+            constantQEnergy >= max(0.08, constantQFloor * 0.65);
 
     if (moderateAgreement) {
       matches.add(stringIndex);
     }
   }
 
-  if (matches.isEmpty) {
+  final bool allowFallback = matches.isEmpty &&
+      (
+          frame.energy >= 0.35 ||
+          strongestPeakEvidence >= 0.2 ||
+          chromaPeak >= 0.65 ||
+          constantQPeak >= 0.55);
+
+  if (allowFallback) {
     final int? fallback = chord.matchPitchClasses(
       frame.chroma,
+      minEnergy: 0.38,
       fundamental: frame.fundamental,
     );
     if (fallback != null) {
