@@ -6,11 +6,13 @@ import 'package:permission_handler/permission_handler.dart';
 
 /// Listens to microphone input and emits chroma-based detection frames.
 class ChordRecognitionService {
+  /// Default thresholds favour rejecting quiet or noisy frames so that ambient
+  /// sounds do not trigger chord recognitions when the player is idle.
   ChordRecognitionService({
-    this.minimumInputAmplitude = 0.045,
-    this.minimumComponentMagnitude = 0.03,
-    this.minimumTotalEnergy = 0.26,
-    this.minimumPeakProminence = 0.32,
+    this.minimumInputAmplitude = 0.085,
+    this.minimumComponentMagnitude = 0.05,
+    this.minimumTotalEnergy = 0.4,
+    this.minimumPeakProminence = 0.48,
   });
 
   final FlutterFft _flutterFft = FlutterFft();
