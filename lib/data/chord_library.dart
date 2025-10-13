@@ -28,6 +28,12 @@ class ChordLibrary {
           'Keep your wrist relaxed so the ring finger arches cleanly.',
           'Strum slowly to let every string ring out.',
         ],
+        stringFrequencies: const <double>[
+          391.995435981749,
+          261.625565300599,
+          329.62755691287,
+          523.251130601197,
+        ],
         stringTunings: _ukuleleTunings,
       ),
       Chord(
@@ -44,6 +50,12 @@ class ChordLibrary {
           'Form a loose triangle shape with your fingers.',
           'Check that each string rings clearly before strumming.',
         ],
+        stringFrequencies: const <double>[
+          440.0,
+          261.625565300599,
+          369.994422711634,
+          523.251130601197,
+        ],
         stringTunings: _ukuleleTunings,
       ),
       Chord(
@@ -59,6 +71,12 @@ class ChordLibrary {
           'Let your middle finger reach over to the second fret of the G string.',
           'Keep your thumb behind the neck to reduce tension.',
         ],
+        stringFrequencies: const <double>[
+          440.0,
+          261.625565300599,
+          349.228231433004,
+          440.0,
+        ],
         stringTunings: _ukuleleTunings,
       ),
       Chord(
@@ -72,6 +90,12 @@ class ChordLibrary {
         tips: const <String>[
           'Press the second fret with your middle finger and keep other strings open.',
           'Make sure the fingertip stays vertical to avoid muting neighbouring strings.',
+        ],
+        stringFrequencies: const <double>[
+          391.995435981749,
+          261.625565300599,
+          329.62755691287,
+          493.883301256124,
         ],
         stringTunings: _ukuleleTunings,
       ),
@@ -89,6 +113,12 @@ class ChordLibrary {
           'Let your ring finger press the C string while the index finger holds the E string.',
           'Strum gently and ensure the open A string rings to complete the chord.',
         ],
+        stringFrequencies: const <double>[
+          440.0,
+          293.664767917408,
+          349.228231433004,
+          440.0,
+        ],
         stringTunings: _ukuleleTunings,
       ),
       Chord(
@@ -105,6 +135,12 @@ class ChordLibrary {
           'Place your fingers one at a time from the A string up to keep the diagonal tidy.',
           'Keep your knuckles arched so the open G string rings without buzzing.',
         ],
+        stringFrequencies: const <double>[
+          391.995435981749,
+          329.62755691287,
+          391.995435981749,
+          493.883301256124,
+        ],
         stringTunings: _ukuleleTunings,
       ),
       Chord(
@@ -119,6 +155,12 @@ class ChordLibrary {
         tips: const <String>[
           'Keep your index finger angled so the open E and A strings ring clearly.',
           'Let your strumming hand focus on the lower three strings for a warm tone.',
+        ],
+        stringFrequencies: const <double>[
+          440.0,
+          277.182630976872,
+          329.62755691287,
+          440.0,
         ],
         stringTunings: _ukuleleTunings,
       ),
@@ -136,6 +178,12 @@ class ChordLibrary {
           'Squeeze gently from thumb to fingertips to keep all three notes ringing.',
           'Lift and reset the chord slowly to build muscle memory for the clustered shape.',
         ],
+        stringFrequencies: const <double>[
+          440.0,
+          293.664767917408,
+          369.994422711634,
+          440.0,
+        ],
         stringTunings: _ukuleleTunings,
       ),
       Chord(
@@ -152,6 +200,12 @@ class ChordLibrary {
           'Let the open G string ring as the root of the dominant sound.',
           'Practice switching between G7 and C to anchor the V–I movement.',
         ],
+        stringFrequencies: const <double>[
+          391.995435981749,
+          293.664767917408,
+          349.228231433004,
+          493.883301256124,
+        ],
         stringTunings: _ukuleleTunings,
       ),
       Chord(
@@ -165,6 +219,12 @@ class ChordLibrary {
         tips: const <String>[
           'Use the tip of your index finger so the neighbouring strings stay open.',
           'Strum lightly toward the floor to highlight the bright seventh.',
+        ],
+        stringFrequencies: const <double>[
+          391.995435981749,
+          261.625565300599,
+          329.62755691287,
+          466.16376151809,
         ],
         stringTunings: _ukuleleTunings,
       ),
@@ -181,6 +241,12 @@ class ChordLibrary {
         tips: const <String>[
           'Keep your wrist relaxed so the index finger can reach back to the first fret.',
           'Aim for a steady strum to let the open E string tie the voicing together.',
+        ],
+        stringFrequencies: const <double>[
+          415.304697579945,
+          293.664767917408,
+          329.62755691287,
+          493.883301256124,
         ],
         stringTunings: _ukuleleTunings,
       ),
@@ -199,6 +265,12 @@ class ChordLibrary {
           'Roll your index finger slightly to cover the second fret cleanly.',
           'Work on lifting all four fingers together to move between G and D7 smoothly.',
         ],
+        stringFrequencies: const <double>[
+          440.0,
+          293.664767917408,
+          369.994422711634,
+          523.251130601197,
+        ],
         stringTunings: _ukuleleTunings,
       ),
       Chord(
@@ -216,6 +288,12 @@ class ChordLibrary {
           'Use the tip of your ring finger on the C string so the neighbouring strings stay clear.',
           'Anchor your thumb in the middle of the neck to help the pinky reach the A string.',
         ],
+        stringFrequencies: const <double>[
+          440.0,
+          311.126983722081,
+          369.994422711634,
+          493.883301256124,
+        ],
         stringTunings: _ukuleleTunings,
       ),
       Chord(
@@ -232,6 +310,12 @@ class ChordLibrary {
         tips: const <String>[
           'Lay your index finger flat across the first fret to act as a mini barre.',
           'Squeeze from your thumb to the first finger while keeping the wrist relaxed.',
+        ],
+        stringFrequencies: const <double>[
+          466.16376151809,
+          293.664767917408,
+          349.228231433004,
+          466.16376151809,
         ],
         stringTunings: _ukuleleTunings,
       ),
@@ -255,6 +339,14 @@ class ChordLibrary {
           'Keep your thumb centred on the back of the neck for better reach.',
         ],
         requiredStringIndexes: const <int>{1, 2, 3, 4, 5},
+        stringFrequencies: const <double>[
+          82.406889228217,
+          130.812782650299,
+          164.813778456435,
+          195.997717990875,
+          261.625565300599,
+          329.62755691287,
+        ],
         stringTunings: _guitarTunings,
       ),
       Chord(
@@ -272,6 +364,14 @@ class ChordLibrary {
           'Strum mainly from the A string downward for a crisp rhythm sound.',
         ],
         requiredStringIndexes: const <int>{1, 2, 3, 4, 5},
+        stringFrequencies: const <double>[
+          82.406889228217,
+          110.0,
+          164.813778456435,
+          220.0,
+          277.182630976872,
+          329.62755691287,
+        ],
         stringTunings: _guitarTunings,
       ),
       Chord(
@@ -288,6 +388,14 @@ class ChordLibrary {
           'Let your wrist drop slightly so the fingers reach both sides of the fretboard.',
           'Keep the B string relaxed to ring open for a bright harmony.',
         ],
+        stringFrequencies: const <double>[
+          97.998858995437,
+          123.470825314031,
+          146.832383958704,
+          195.997717990875,
+          246.941650628062,
+          391.995435981749,
+        ],
         stringTunings: _guitarTunings,
       ),
       Chord(
@@ -303,6 +411,14 @@ class ChordLibrary {
         tips: const <String>[
           'Press the first fret gently with the tip of your index finger to avoid muting the E string.',
           'Strum confidently from the low E string through the high E string.',
+        ],
+        stringFrequencies: const <double>[
+          82.406889228217,
+          123.470825314031,
+          164.813778456435,
+          207.652348789973,
+          246.941650628062,
+          329.62755691287,
         ],
         stringTunings: _guitarTunings,
       ),
@@ -321,6 +437,14 @@ class ChordLibrary {
           'Curve each fingertip so the notes on the top strings ring without buzz.',
         ],
         requiredStringIndexes: const <int>{2, 3, 4, 5},
+        stringFrequencies: const <double>[
+          82.406889228217,
+          110.0,
+          146.832383958704,
+          220.0,
+          293.664767917408,
+          369.994422711634,
+        ],
         stringTunings: _guitarTunings,
       ),
       Chord(
@@ -338,6 +462,14 @@ class ChordLibrary {
           'Listen for the open high E string to shimmer above the chord.',
         ],
         requiredStringIndexes: const <int>{1, 2, 3, 4, 5},
+        stringFrequencies: const <double>[
+          82.406889228217,
+          110.0,
+          164.813778456435,
+          220.0,
+          261.625565300599,
+          329.62755691287,
+        ],
         stringTunings: _guitarTunings,
       ),
       Chord(
@@ -352,6 +484,14 @@ class ChordLibrary {
         tips: const <String>[
           'Curl your fingers so the open strings ring clearly.',
           'Strum all six strings with an even motion.',
+        ],
+        stringFrequencies: const <double>[
+          82.406889228217,
+          123.470825314031,
+          164.813778456435,
+          195.997717990875,
+          246.941650628062,
+          329.62755691287,
         ],
         stringTunings: _guitarTunings,
       ),
@@ -370,6 +510,14 @@ class ChordLibrary {
           'Strum from the D string downward so the bass note stays clear.',
         ],
         requiredStringIndexes: const <int>{2, 3, 4, 5},
+        stringFrequencies: const <double>[
+          82.406889228217,
+          110.0,
+          146.832383958704,
+          220.0,
+          293.664767917408,
+          349.228231433004,
+        ],
         stringTunings: _guitarTunings,
       ),
     ];
