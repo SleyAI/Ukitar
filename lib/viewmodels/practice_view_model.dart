@@ -152,6 +152,17 @@ class PracticeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> resetProgress() async {
+    unlockedChords = 1;
+    currentChordIndex = 0;
+    celebrationChordIndex = null;
+    completedRepetitions = 0;
+    await _progressRepository.clearUnlockedChords(instrument);
+    await resetAttempt();
+    statusMessage = 'Progress reset. Tap "Start Listening" when ready.';
+    notifyListeners();
+  }
+
   Future<void> openSystemSettings() async {
     final bool granted = await _chordRecognitionService.openSystemSettings();
     if (granted) {

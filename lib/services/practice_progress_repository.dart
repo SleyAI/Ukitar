@@ -6,6 +6,8 @@ abstract class PracticeProgressRepository {
   Future<int?> loadUnlockedChords(InstrumentType instrument);
 
   Future<void> saveUnlockedChords(InstrumentType instrument, int unlocked);
+
+  Future<void> clearUnlockedChords(InstrumentType instrument);
 }
 
 class SharedPreferencesPracticeProgressRepository
@@ -30,6 +32,12 @@ class SharedPreferencesPracticeProgressRepository
       InstrumentType instrument, int unlocked) async {
     final SharedPreferences preferences = await _preferencesFuture;
     await preferences.setInt(_storageKey(instrument), unlocked);
+  }
+
+  @override
+  Future<void> clearUnlockedChords(InstrumentType instrument) async {
+    final SharedPreferences preferences = await _preferencesFuture;
+    await preferences.remove(_storageKey(instrument));
   }
 
   String _storageKey(InstrumentType instrument) =>
