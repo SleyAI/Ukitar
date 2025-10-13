@@ -7,10 +7,10 @@ import 'package:permission_handler/permission_handler.dart';
 /// Listens to microphone input and emits chroma-based detection frames.
 class ChordRecognitionService {
   ChordRecognitionService({
-    this.minimumInputAmplitude = 0.02,
-    this.minimumComponentMagnitude = 0.015,
-    this.minimumTotalEnergy = 0.12,
-    this.minimumPeakProminence = 0.2,
+    this.minimumInputAmplitude = 0.045,
+    this.minimumComponentMagnitude = 0.03,
+    this.minimumTotalEnergy = 0.26,
+    this.minimumPeakProminence = 0.32,
   });
 
   final FlutterFft _flutterFft = FlutterFft();
