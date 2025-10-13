@@ -10,11 +10,20 @@ class Chord {
     required this.tips,
     required List<StringTuning> stringTunings,
     Set<int>? requiredStringIndexes,
+    List<double>? stringFrequencies,
   })  : stringTunings = List<StringTuning>.unmodifiable(stringTunings),
         requiredStringIndexes = _normalizeRequiredIndexes(
           stringTunings,
           requiredStringIndexes,
-        ) {
+        ),
+        _customFrequencies = stringFrequencies == null
+            ? null
+            : List<double>.unmodifiable(stringFrequencies) {
+    assert(
+      _customFrequencies == null ||
+          _customFrequencies!.length == stringTunings.length,
+      'Custom frequencies must match the number of strings.',
+    );
     assert(this.requiredStringIndexes.isNotEmpty,
         'Chord must require at least one string to ring.');
     _notes = _buildNotes();
@@ -31,6 +40,8 @@ class Chord {
   final List<String> tips;
   final List<StringTuning> stringTunings;
   final Set<int> requiredStringIndexes;
+
+  final List<double>? _customFrequencies;
 
   late final List<ChordNote> _notes;
   late final _ChromagramStringClassifier _stringClassifier;
@@ -194,10 +205,16 @@ class Chord {
     return null;
   }
 
-  ChordNote _buildNoteForString(int stringIndex, int fret) {
+  ChordNote _buildNoteForString(
+    int stringIndex,
+    int fret, {
+    double? overrideFrequency,
+  }) {
     final StringTuning tuning = stringTunings[stringIndex];
     final int midi = tuning.midi + fret;
-    final double frequency = 440.0 * pow(2, (midi - 69) / 12).toDouble();
+    final double frequency = overrideFrequency != null && overrideFrequency > 0
+        ? overrideFrequency
+        : 440.0 * pow(2, (midi - 69) / 12).toDouble();
 
     return ChordNote(
       stringIndex: stringIndex,
@@ -210,9 +227,16 @@ class Chord {
 
   List<ChordNote> _buildNotes() {
     final List<int> frets = stringFrets;
+    final List<double>? overrides = _customFrequencies;
     return List<ChordNote>.generate(
       frets.length,
-      (int index) => _buildNoteForString(index, frets[index]),
+      (int index) => _buildNoteForString(
+        index,
+        frets[index],
+        overrideFrequency: overrides != null && index < overrides.length
+            ? overrides[index]
+            : null,
+      ),
     );
   }
 
