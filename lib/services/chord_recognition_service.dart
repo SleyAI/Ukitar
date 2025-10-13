@@ -117,12 +117,27 @@ class ChordRecognitionService {
       return null;
     }
 
+    final List<double> fftChroma = _buildChromagram(spectrum);
+    final List<double> constantQChroma = _buildConstantQChroma(spectrum);
+    final List<double> combinedChroma = List<double>.generate(
+      12,
+      (int index) =>
+          max(fftChroma[index], constantQChroma[index]),
+      growable: false,
+    );
+
     List<FrequencyPeak> peaks = spectrum.entries
         .map(
-          (MapEntry<double, double> entry) => FrequencyPeak(
-            frequency: entry.key,
-            magnitude: entry.value / totalEnergy,
-          ),
+          (MapEntry<double, double> entry) {
+            final double magnitude = entry.value / totalEnergy;
+            final int pitchClass = _pitchClassFromFrequency(entry.key);
+            final double constantQMagnitude = constantQChroma[pitchClass];
+            return FrequencyPeak(
+              frequency: entry.key,
+              magnitude: magnitude,
+              constantQMagnitude: constantQMagnitude,
+            );
+          },
         )
         .toList(growable: false)
       ..sort(
@@ -137,9 +152,10 @@ class ChordRecognitionService {
       peaks = List<FrequencyPeak>.unmodifiable(peaks);
     }
 
-    final List<double> chroma = _buildChromagram(spectrum);
     return ChordDetectionFrame(
-      chroma: chroma,
+      chroma: combinedChroma,
+      fftChroma: fftChroma,
+      constantQChroma: constantQChroma,
       fundamental: fundamental,
       energy: totalEnergy,
       peaks: peaks,
@@ -262,6 +278,81 @@ class ChordRecognitionService {
         .map((double value) => value <= 0 ? 0.0 : value / maxValue)
         .toList();
   }
+
+  List<double> _buildConstantQChroma(Map<double, double> spectrum) {
+    final List<double> chroma = List<double>.filled(12, 0);
+    if (spectrum.isEmpty) {
+      return chroma;
+    }
+
+    const int minMidi = 36; // C2
+    const int maxMidi = 84; // C6
+    const double binsPerOctave = 12.0;
+    final double q = 1 / (pow(2, 1 / binsPerOctave) - 1);
+    final List<MapEntry<double, double>> components =
+        spectrum.entries.toList(growable: false);
+
+    for (int midi = minMidi; midi <= maxMidi; midi++) {
+      final double centerFrequency =
+          440.0 * pow(2.0, (midi - 69) / 12.0);
+      if (centerFrequency <= 0) {
+        continue;
+      }
+      final double bandwidth = centerFrequency / q;
+      final double sigma = max(
+        1.0,
+        bandwidth / (2 * sqrt(2 * ln2)),
+      );
+
+      double energy = 0;
+      for (final MapEntry<double, double> component in components) {
+        final double frequency = component.key;
+        final double magnitude = component.value;
+        if (frequency <= 0 || magnitude <= 0) {
+          continue;
+        }
+        final double distance = frequency - centerFrequency;
+        if (distance.abs() > bandwidth) {
+          continue;
+        }
+        final double weight = exp(-0.5 * pow(distance / sigma, 2));
+        if (weight <= 0.0001) {
+          continue;
+        }
+        energy += magnitude * weight;
+      }
+
+      final int pitchClass = (midi % 12 + 12) % 12;
+      chroma[pitchClass] += energy;
+    }
+
+    double maxValue = 0;
+    for (final double value in chroma) {
+      if (value > maxValue) {
+        maxValue = value;
+      }
+    }
+
+    if (maxValue <= 0) {
+      return chroma;
+    }
+
+    return chroma
+        .map((double value) => value <= 0 ? 0.0 : value / maxValue)
+        .toList(growable: false);
+  }
+
+  int _pitchClassFromFrequency(double frequency) {
+    if (frequency <= 0) {
+      return 0;
+    }
+    final double midi = 69 + (12 * (log(frequency / 440.0) / ln2));
+    int pitchClass = midi.round() % 12;
+    if (pitchClass < 0) {
+      pitchClass += 12;
+    }
+    return pitchClass;
+  }
 }
 
 class MicrophonePermissionException implements Exception {
@@ -272,7 +363,9 @@ class MicrophonePermissionException implements Exception {
 
 class ChordDetectionFrame {
   ChordDetectionFrame({
-    required this.chroma,
+    required List<double> chroma,
+    required List<double> fftChroma,
+    required List<double> constantQChroma,
     required this.energy,
     required List<FrequencyPeak> peaks,
     this.fundamental,
@@ -280,9 +373,22 @@ class ChordDetectionFrame {
           chroma.length == 12,
           'Chromagram must contain exactly 12 pitch-class bins.',
         ),
+        assert(
+          fftChroma.length == 12,
+          'FFT chromagram must contain exactly 12 pitch-class bins.',
+        ),
+        assert(
+          constantQChroma.length == 12,
+          'Constant-Q chromagram must contain exactly 12 pitch-class bins.',
+        ),
+        chroma = List<double>.unmodifiable(chroma),
+        fftChroma = List<double>.unmodifiable(fftChroma),
+        constantQChroma = List<double>.unmodifiable(constantQChroma),
         peaks = List<FrequencyPeak>.unmodifiable(peaks);
 
   final List<double> chroma;
+  final List<double> fftChroma;
+  final List<double> constantQChroma;
   final double energy;
   final double? fundamental;
   final List<FrequencyPeak> peaks;
@@ -292,10 +398,12 @@ class FrequencyPeak {
   const FrequencyPeak({
     required this.frequency,
     required this.magnitude,
+    required this.constantQMagnitude,
   });
 
   final double frequency;
   final double magnitude;
+  final double constantQMagnitude;
 }
 
 class _FrequencyComponent {

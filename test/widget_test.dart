@@ -202,13 +202,21 @@ class FakeChordRecognitionService extends ChordRecognitionService {
     }
     final List<double> chroma = List<double>.filled(12, 0);
     chroma[note.pitchClass] = 1.0;
+    final List<double> fftChroma = List<double>.from(chroma);
+    final List<double> constantQChroma = List<double>.from(chroma);
     _controller.add(
       ChordDetectionFrame(
         chroma: chroma,
+        fftChroma: fftChroma,
+        constantQChroma: constantQChroma,
         energy: 1.0,
         fundamental: note.frequency,
         peaks: <FrequencyPeak>[
-          FrequencyPeak(frequency: note.frequency, magnitude: 1.0),
+          FrequencyPeak(
+            frequency: note.frequency,
+            magnitude: 1.0,
+            constantQMagnitude: 1.0,
+          ),
         ],
       ),
     );
