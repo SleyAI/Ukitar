@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 
 import '../data/chord_library.dart';
@@ -10,6 +8,7 @@ import '../models/instrument.dart';
 import '../services/chord_recognition_service.dart';
 import '../services/practice_progress_repository.dart';
 import '../utils/chord_match_tracker.dart';
+import '../utils/string_detection.dart';
 
 class PracticeViewModel extends ChangeNotifier {
   PracticeViewModel(
@@ -207,7 +206,7 @@ class PracticeViewModel extends ChangeNotifier {
       return;
     }
 
-    final Set<int> matchedStrings = _identifyMatches(chord, frame);
+    final Set<int> matchedStrings = identifyChordStringMatches(chord, frame);
 
     latestFrequency = frame.fundamental ??
         (frame.peaks.isNotEmpty ? frame.peaks.first.frequency : null);
@@ -244,39 +243,6 @@ class PracticeViewModel extends ChangeNotifier {
     }
 
     notifyListeners();
-  }
-
-  Set<int> _identifyMatches(Chord chord, ChordDetectionFrame frame) {
-    final Set<int> matches = <int>{};
-
-    if (frame.peaks.isNotEmpty) {
-      final double dominant = frame.peaks.first.magnitude;
-      final double threshold = max(0.08, dominant * 0.35);
-      for (final FrequencyPeak peak in frame.peaks) {
-        if (peak.magnitude < threshold) {
-          continue;
-        }
-        final int? matched = chord.matchFrequency(
-          peak.frequency,
-          toleranceCents: 35,
-        );
-        if (matched != null) {
-          matches.add(matched);
-        }
-      }
-    }
-
-    if (matches.isEmpty) {
-      final int? fallback = chord.matchPitchClasses(
-        frame.chroma,
-        fundamental: frame.fundamental,
-      );
-      if (fallback != null) {
-        matches.add(fallback);
-      }
-    }
-
-    return matches;
   }
 
   void _restartAttemptTimer() {

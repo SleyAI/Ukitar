@@ -1,0 +1,148 @@
+import 'dart:math';
+
+import '../models/chord.dart';
+import '../services/chord_recognition_service.dart';
+
+/// Identifies which required strings of [chord] are currently ringing in the
+/// provided [frame] by combining FFT peaks, constant-Q magnitudes, and the
+/// chroma profile. The detection is intentionally tolerant so that clean
+/// strums are counted even when individual analyses disagree slightly, while
+/// still requiring support from multiple transforms before accepting a match.
+Set<int> identifyChordStringMatches(
+  Chord chord,
+  ChordDetectionFrame frame, {
+  double frequencyToleranceCents = 35,
+}) {
+  final Set<int> requiredStrings = chord.requiredStringIndexes;
+  if (requiredStrings.isEmpty) {
+    return <int>{};
+  }
+
+  final Map<int, double> peakEvidence = <int, double>{};
+  double strongestPeakEvidence = 0;
+  double strongestPeakConstantQ = 0;
+
+  for (final FrequencyPeak peak in frame.peaks) {
+    if (peak.magnitude <= 0) {
+      continue;
+    }
+    final int? matched = chord.matchFrequency(
+      peak.frequency,
+      toleranceCents: frequencyToleranceCents,
+    );
+    if (matched == null || !requiredStrings.contains(matched)) {
+      continue;
+    }
+    final double fftWeight = _clamp01(peak.magnitude);
+    final double constantQWeight = _clamp01(peak.constantQMagnitude);
+    final double combinedEvidence = (fftWeight * 0.6) + (constantQWeight * 0.4);
+    final double existing = peakEvidence[matched] ?? 0;
+    if (combinedEvidence > existing) {
+      peakEvidence[matched] = combinedEvidence;
+    }
+    if (combinedEvidence > strongestPeakEvidence) {
+      strongestPeakEvidence = combinedEvidence;
+    }
+    if (constantQWeight > strongestPeakConstantQ) {
+      strongestPeakConstantQ = constantQWeight;
+    }
+  }
+
+  double chromaPeak = 0;
+  for (final double value in frame.chroma) {
+    final double sanitized = _clamp01(value);
+    if (sanitized > chromaPeak) {
+      chromaPeak = sanitized;
+    }
+  }
+
+  double constantQPeak = 0;
+  for (final double value in frame.constantQChroma) {
+    final double sanitized = _clamp01(value);
+    if (sanitized > constantQPeak) {
+      constantQPeak = sanitized;
+    }
+  }
+
+  final double chromaFloor =
+      chromaPeak > 0 ? max(0.24, chromaPeak * 0.48) : 0.24;
+  final double constantQFloor =
+      constantQPeak > 0 ? max(0.06, constantQPeak * 0.42) : 0.06;
+  final double peakFloor = strongestPeakEvidence > 0
+      ? max(0.08, strongestPeakEvidence * 0.42)
+      : 0.08;
+
+  final Set<int> matches = <int>{};
+
+  for (final int stringIndex in requiredStrings) {
+    final int pitchClass = chord.notes[stringIndex].pitchClass;
+    final double chromaEnergy = _valueForPitchClass(frame.chroma, pitchClass);
+    final double constantQEnergy =
+        _valueForPitchClass(frame.constantQChroma, pitchClass);
+    final double peakEnergy = peakEvidence[stringIndex] ?? 0;
+
+    final bool chromaStrong = chromaEnergy >= chromaFloor;
+    final bool constantQStrong = constantQEnergy >= constantQFloor ||
+        (strongestPeakConstantQ > 0 &&
+            constantQEnergy >= strongestPeakConstantQ * 0.6);
+    final bool peakStrong = peakEnergy >= peakFloor ||
+        (strongestPeakEvidence > 0 &&
+            peakEnergy >= strongestPeakEvidence * 0.65);
+
+    final double blendedScore = (peakEnergy * 0.4) +
+        (chromaEnergy * 0.35) +
+        (constantQEnergy * 0.25);
+
+    if ((chromaStrong && constantQStrong) ||
+        (peakStrong && (chromaStrong || constantQStrong)) ||
+        blendedScore >= 0.58) {
+      matches.add(stringIndex);
+      continue;
+    }
+
+    final bool moderateAgreement =
+        peakEnergy >= peakFloor * 0.85 &&
+            chromaEnergy >= chromaFloor * 0.75 &&
+            constantQEnergy >= max(0.04, constantQFloor * 0.6);
+
+    if (moderateAgreement) {
+      matches.add(stringIndex);
+    }
+  }
+
+  if (matches.isEmpty) {
+    final int? fallback = chord.matchPitchClasses(
+      frame.chroma,
+      fundamental: frame.fundamental,
+    );
+    if (fallback != null) {
+      matches.add(fallback);
+    }
+  }
+
+  return matches;
+}
+
+double _valueForPitchClass(List<double> values, int index) {
+  if (values.isEmpty) {
+    return 0;
+  }
+  final int normalizedIndex = ((index % values.length) + values.length) % values.length;
+  if (normalizedIndex < 0 || normalizedIndex >= values.length) {
+    return 0;
+  }
+  return _clamp01(values[normalizedIndex]);
+}
+
+double _clamp01(double value) {
+  if (value.isNaN || value.isInfinite) {
+    return 0;
+  }
+  if (value <= 0) {
+    return 0;
+  }
+  if (value >= 1) {
+    return 1;
+  }
+  return value;
+}
