@@ -6,9 +6,34 @@ import 'package:permission_handler/permission_handler.dart';
 
 /// Listens to microphone input and emits chroma-based detection frames.
 class ChordRecognitionService {
+  ChordRecognitionService({
+    this.minimumInputAmplitude = 0.02,
+    this.minimumComponentMagnitude = 0.015,
+    this.minimumTotalEnergy = 0.12,
+    this.minimumPeakProminence = 0.2,
+  });
+
   final FlutterFft _flutterFft = FlutterFft();
   final StreamController<ChordDetectionFrame> _analysisController =
       StreamController<ChordDetectionFrame>.broadcast();
+
+  /// Frames with an input amplitude below this value are discarded. The
+  /// amplitude comes directly from the `flutter_fft` plugin and remains
+  /// `null` on platforms that do not expose it, in which case the gate is
+  /// skipped.
+  final double minimumInputAmplitude;
+
+  /// Individual spectral components with a magnitude below this value are
+  /// ignored to avoid reinforcing background noise.
+  final double minimumComponentMagnitude;
+
+  /// The aggregated energy of the spectrum must exceed this threshold for a
+  /// frame to be considered.
+  final double minimumTotalEnergy;
+
+  /// The strongest peak in the spectrum must contribute at least this ratio of
+  /// the overall energy (peaks are normalised to the range 0..1).
+  final double minimumPeakProminence;
 
   Stream<ChordDetectionFrame> get detectionStream =>
       _analysisController.stream;
@@ -82,6 +107,11 @@ class ChordRecognitionService {
 
     final double? fundamental =
         data.length > 1 ? _toDouble(data[1]) : null;
+    final double? inputAmplitude = data.length > 2 ? _toDouble(data[2]) : null;
+    if (inputAmplitude != null && inputAmplitude.abs() < minimumInputAmplitude) {
+      return null;
+    }
+
     final List<_FrequencyComponent> components =
         _extractComponents(data, fundamental: fundamental);
     if (components.isEmpty) {
@@ -95,7 +125,7 @@ class ChordRecognitionService {
         continue;
       }
       final double magnitude = component.magnitude;
-      if (magnitude <= 0) {
+      if (magnitude < minimumComponentMagnitude) {
         continue;
       }
       spectrum.update(
@@ -113,7 +143,7 @@ class ChordRecognitionService {
       0.0,
       (double sum, double value) => sum + value,
     );
-    if (totalEnergy <= 0) {
+    if (totalEnergy <= minimumTotalEnergy) {
       return null;
     }
 
@@ -150,6 +180,10 @@ class ChordRecognitionService {
       peaks = List<FrequencyPeak>.unmodifiable(peaks.sublist(0, maxPeaks));
     } else {
       peaks = List<FrequencyPeak>.unmodifiable(peaks);
+    }
+
+    if (peaks.isEmpty || peaks.first.magnitude < minimumPeakProminence) {
+      return null;
     }
 
     return ChordDetectionFrame(
