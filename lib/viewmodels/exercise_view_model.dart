@@ -8,6 +8,7 @@ import '../models/chord.dart';
 import '../models/instrument.dart';
 import '../services/chord_recognition_service.dart';
 import '../utils/chord_match_tracker.dart';
+import '../utils/string_detection.dart';
 
 class ExerciseViewModel extends ChangeNotifier {
   ExerciseViewModel(this._chordRecognitionService, this.instrument)
@@ -179,7 +180,7 @@ class ExerciseViewModel extends ChangeNotifier {
       return;
     }
 
-    final Set<int> matchedStrings = _identifyMatches(chord, frame);
+    final Set<int> matchedStrings = identifyChordStringMatches(chord, frame);
 
     if (matchedStrings.isEmpty) {
       notifyListeners();
@@ -213,52 +214,6 @@ class ExerciseViewModel extends ChangeNotifier {
     }
 
     notifyListeners();
-  }
-
-  Set<int> _identifyMatches(Chord chord, ChordDetectionFrame frame) {
-    final Set<int> matches = <int>{};
-
-    if (frame.peaks.isNotEmpty) {
-      final double dominantFft = frame.peaks.first.magnitude;
-      final double dominantConstantQ = frame.peaks
-          .map((FrequencyPeak peak) => peak.constantQMagnitude)
-          .fold<double>(0, max);
-      final double fftThreshold = max(0.08, dominantFft * 0.35);
-      final double constantQThreshold = max(
-        0.05,
-        dominantConstantQ > 0 ? dominantConstantQ * 0.5 : 0.0,
-      );
-      for (final FrequencyPeak peak in frame.peaks) {
-        if (peak.magnitude < fftThreshold) {
-          continue;
-        }
-        final int? matched = chord.matchFrequency(
-          peak.frequency,
-          toleranceCents: 35,
-        );
-        if (matched == null) {
-          continue;
-        }
-        final int pitchClass = chord.notes[matched].pitchClass;
-        final double constantQEnergy = frame.constantQChroma[pitchClass];
-        if (constantQEnergy < constantQThreshold) {
-          continue;
-        }
-        matches.add(matched);
-      }
-    }
-
-    if (matches.isEmpty) {
-      final int? fallback = chord.matchPitchClasses(
-        frame.chroma,
-        fundamental: frame.fundamental,
-      );
-      if (fallback != null) {
-        matches.add(fallback);
-      }
-    }
-
-    return matches;
   }
 
   void _restartAttemptTimer() {
