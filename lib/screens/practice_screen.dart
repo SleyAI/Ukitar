@@ -77,6 +77,17 @@ class _PracticeView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    TextButton.icon(
+                      onPressed: () => unawaited(model.resetProgress()),
+                      icon: const Icon(Icons.restart_alt),
+                      label: const Text('Reset Progress'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
                     Expanded(

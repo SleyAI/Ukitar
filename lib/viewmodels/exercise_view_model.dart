@@ -7,19 +7,33 @@ import '../data/chord_library.dart';
 import '../models/chord.dart';
 import '../models/instrument.dart';
 import '../services/chord_recognition_service.dart';
+import '../services/practice_progress_repository.dart';
 import '../utils/chord_match_tracker.dart';
 import '../utils/string_detection.dart';
 
 class ExerciseViewModel extends ChangeNotifier {
-  ExerciseViewModel(this._chordRecognitionService, this.instrument)
-      : chords = ChordLibrary.beginnerCourse(instrument) {
+  ExerciseViewModel(
+    this._chordRecognitionService,
+    this.instrument, {
+    PracticeProgressRepository? progressRepository,
+  })  : _progressRepository =
+            progressRepository ?? SharedPreferencesPracticeProgressRepository(),
+        _allChords = ChordLibrary.beginnerCourse(instrument) {
+    if (_allChords.isEmpty) {
+      throw StateError('No chords available for exercises.');
+    }
+
+    _availableChords = <Chord>[_allChords.first];
+    currentChord = _availableChords.first;
     _detectionSubscription =
         _chordRecognitionService.detectionStream.listen(_handleDetection);
-    _prepareNextChord(initial: true);
+    unawaited(_initialize());
   }
 
   final ChordRecognitionService _chordRecognitionService;
-  final List<Chord> chords;
+  final PracticeProgressRepository _progressRepository;
+  final List<Chord> _allChords;
+  List<Chord> _availableChords = <Chord>[];
   final InstrumentType instrument;
 
   late final StreamSubscription<ChordDetectionFrame> _detectionSubscription;
@@ -49,6 +63,30 @@ class ExerciseViewModel extends ChangeNotifier {
 
   Timer? _attemptTimer;
   bool _disposed = false;
+
+  Future<void> _initialize() async {
+    final int unlockedCount = _normalizeUnlocked(
+      await _progressRepository.loadUnlockedChords(instrument),
+    );
+    _updateAvailableChords(unlockedCount);
+    _prepareNextChord(initial: true);
+  }
+
+  int _normalizeUnlocked(int? unlocked) {
+    final int value = unlocked ?? 1;
+    if (value < 1) {
+      return 1;
+    }
+    if (value > _allChords.length) {
+      return _allChords.length;
+    }
+    return value;
+  }
+
+  void _updateAvailableChords(int unlockedCount) {
+    _availableChords =
+        _allChords.take(unlockedCount).toList(growable: false);
+  }
 
   Future<void> startListening() async {
     if (isPreparingNextChord) {
@@ -139,20 +177,20 @@ class ExerciseViewModel extends ChangeNotifier {
   }
 
   void _prepareNextChord({bool initial = false}) {
-    if (chords.isEmpty) {
+    if (_availableChords.isEmpty) {
       throw StateError('No chords available for exercises.');
     }
 
-    int nextIndex = _random.nextInt(chords.length);
+    int nextIndex = _random.nextInt(_availableChords.length);
     final int? previousIndex = _currentChordIndex;
-    if (!initial && chords.length > 1 && previousIndex != null) {
+    if (!initial && _availableChords.length > 1 && previousIndex != null) {
       while (nextIndex == previousIndex) {
-        nextIndex = _random.nextInt(chords.length);
+        nextIndex = _random.nextInt(_availableChords.length);
       }
     }
 
     _currentChordIndex = nextIndex;
-    currentChord = chords[nextIndex];
+    currentChord = _availableChords[nextIndex];
 
     _matchTracker.reset();
     lastAttemptSuccessful = null;

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/instrument.dart';
 import '../services/chord_recognition_service.dart';
+import '../services/practice_progress_repository.dart';
 import '../viewmodels/exercise_view_model.dart';
 import '../widgets/chord_diagram.dart';
 
@@ -13,10 +14,26 @@ class ExerciseScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final PracticeProgressRepository progressRepository =
+        _resolveProgressRepository(context);
+
     return ChangeNotifierProvider<ExerciseViewModel>(
-      create: (_) => ExerciseViewModel(ChordRecognitionService(), instrument),
+      create: (_) => ExerciseViewModel(
+        ChordRecognitionService(),
+        instrument,
+        progressRepository: progressRepository,
+      ),
       child: const _ExerciseView(),
     );
+  }
+
+  PracticeProgressRepository _resolveProgressRepository(
+      BuildContext context) {
+    try {
+      return Provider.of<PracticeProgressRepository>(context, listen: false);
+    } on ProviderNotFoundException {
+      return SharedPreferencesPracticeProgressRepository();
+    }
   }
 }
 
