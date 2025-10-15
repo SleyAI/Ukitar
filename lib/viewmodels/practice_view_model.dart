@@ -207,6 +207,15 @@ class PracticeViewModel extends ChangeNotifier {
 
   void _handleDetection(ChordDetectionFrame frame) {
     final Chord chord = currentChord;
+    if (instrument == InstrumentType.ukulele) {
+      final String? predictedChordId = frame.predictedChordId;
+      final double confidence = frame.predictedConfidence ?? 0;
+      if (predictedChordId != null &&
+          predictedChordId != chord.id &&
+          confidence >= 0.4) {
+        return;
+      }
+    }
     double chromaPeak = 0;
     for (final double value in frame.chroma) {
       if (value > chromaPeak) {

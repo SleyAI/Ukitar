@@ -173,7 +173,8 @@ Future<void> _playChordOnce(
 }
 
 class FakeChordRecognitionService extends ChordRecognitionService {
-  FakeChordRecognitionService();
+  FakeChordRecognitionService()
+      : super(instrument: InstrumentType.ukulele);
 
   final StreamController<ChordDetectionFrame> _controller =
       StreamController<ChordDetectionFrame>.broadcast();
