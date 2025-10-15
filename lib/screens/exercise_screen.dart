@@ -19,7 +19,7 @@ class ExerciseScreen extends StatelessWidget {
 
     return ChangeNotifierProvider<ExerciseViewModel>(
       create: (_) => ExerciseViewModel(
-        ChordRecognitionService(),
+        ChordRecognitionService(instrument: instrument),
         instrument,
         progressRepository: progressRepository,
       ),
