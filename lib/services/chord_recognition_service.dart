@@ -195,8 +195,11 @@ class ChordRecognitionService {
       return null;
     }
 
-    final List<_FrequencyComponent> components =
-        _extractComponents(data, fundamental: fundamental);
+    final List<_FrequencyComponent> components = _extractComponents(
+      data,
+      fundamental: fundamental,
+      inputAmplitude: inputAmplitude,
+    );
     if (components.isEmpty) {
       return null;
     }
@@ -289,12 +292,41 @@ class ChordRecognitionService {
   List<_FrequencyComponent> _extractComponents(
     List<dynamic> data, {
     double? fundamental,
+    double? inputAmplitude,
   }) {
     final List<_FrequencyComponent> components = <_FrequencyComponent>[];
 
-    if (fundamental != null && fundamental > 20 && fundamental < 5000) {
+    final double? amplitude = (inputAmplitude != null &&
+            inputAmplitude.isFinite &&
+            inputAmplitude != 0)
+        ? inputAmplitude.abs()
+        : null;
+
+    const double syntheticHarmonicGain = 12.0;
+    double? baseMagnitude;
+    if (amplitude != null) {
+      final double overThreshold = amplitude - minimumInputAmplitude;
+      if (overThreshold > 0) {
+        final double scaled = overThreshold * syntheticHarmonicGain;
+        baseMagnitude = scaled.clamp(
+          minimumComponentMagnitude,
+          minimumComponentMagnitude * syntheticHarmonicGain,
+        );
+      } else {
+        baseMagnitude = minimumComponentMagnitude;
+      }
+    } else {
+      baseMagnitude = 1.0;
+    }
+    if (baseMagnitude != null &&
+        fundamental != null &&
+        fundamental > 20 &&
+        fundamental < 5000) {
       components.add(
-        _FrequencyComponent(frequency: fundamental, magnitude: 1.0),
+        _FrequencyComponent(
+          frequency: fundamental,
+          magnitude: baseMagnitude,
+        ),
       );
       for (int harmonic = 2; harmonic <= 6; harmonic++) {
         final double harmonicFrequency = fundamental * harmonic;
@@ -304,7 +336,7 @@ class ChordRecognitionService {
         components.add(
           _FrequencyComponent(
             frequency: harmonicFrequency,
-            magnitude: 1 / (harmonic * harmonic),
+            magnitude: baseMagnitude / (harmonic * harmonic),
           ),
         );
       }
