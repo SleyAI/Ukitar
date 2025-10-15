@@ -9,6 +9,7 @@ import '../services/chord_recognition_service.dart';
 import '../services/practice_progress_repository.dart';
 import '../utils/chord_match_tracker.dart';
 import '../utils/string_detection.dart';
+import '../utils/ukulele_prediction_confidence.dart';
 
 class PracticeViewModel extends ChangeNotifier {
   PracticeViewModel(
@@ -52,8 +53,9 @@ class PracticeViewModel extends ChangeNotifier {
   static const int repetitionsRequired = 5;
   static const double _successRatio = 0.8;
   static const Duration _ukuleleRecognitionCooldown =
-      Duration(milliseconds: 900);
+      Duration(milliseconds: 750);
   static const double _ukuleleConfidenceThreshold = 0.55;
+  static const double _ukuleleMinimumEnergy = 0.2;
 
   DateTime? _lastUkuleleChordMatch;
 
@@ -275,15 +277,16 @@ class PracticeViewModel extends ChangeNotifier {
         (frame.peaks.isNotEmpty ? frame.peaks.first.frequency : null);
 
     final String? predictedChordId = frame.predictedChordId;
-    final double confidence = frame.predictedConfidence ?? 0;
-
-    if (frame.energy < 0.25 || predictedChordId == null) {
+    if (frame.energy < _ukuleleMinimumEnergy || predictedChordId == null) {
       notifyListeners();
       return;
     }
 
     if (predictedChordId != chord.id ||
-        confidence < _ukuleleConfidenceThreshold) {
+        !isConfidentUkulelePrediction(
+          frame,
+          highConfidenceThreshold: _ukuleleConfidenceThreshold,
+        )) {
       notifyListeners();
       return;
     }
