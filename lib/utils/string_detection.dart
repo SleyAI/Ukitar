@@ -73,6 +73,8 @@ Set<int> identifyChordStringMatches(
       : 0.12;
 
   final Set<int> matches = <int>{};
+  final bool allowChromaOnlyMatches =
+      peakEvidence.isNotEmpty && strongestPeakEvidence >= 0.48;
 
   for (final int stringIndex in requiredStrings) {
     final int pitchClass = chord.notes[stringIndex].pitchClass;
@@ -85,28 +87,41 @@ Set<int> identifyChordStringMatches(
     final bool constantQStrong = constantQEnergy >= constantQFloor ||
         (strongestPeakConstantQ > 0 &&
             constantQEnergy >= strongestPeakConstantQ * 0.6);
-    final bool peakStrong = peakEnergy >= peakFloor ||
-        (strongestPeakEvidence > 0 &&
-            peakEnergy >= strongestPeakEvidence * 0.65);
+    final bool peakStrong = peakEnergy > 0 &&
+        (peakEnergy >= peakFloor ||
+            (strongestPeakEvidence > 0 &&
+                peakEnergy >= strongestPeakEvidence * 0.65));
 
     final double blendedScore = (peakEnergy * 0.4) +
         (chromaEnergy * 0.35) +
         (constantQEnergy * 0.25);
 
-    if ((chromaStrong && constantQStrong) ||
-        (peakStrong && (chromaStrong || constantQStrong)) ||
-        blendedScore >= 0.58) {
-      matches.add(stringIndex);
+    if (peakEnergy > 0) {
+      if ((chromaStrong && constantQStrong) ||
+          (peakStrong && (chromaStrong || constantQStrong)) ||
+          blendedScore >= 0.58) {
+        matches.add(stringIndex);
+        continue;
+      }
+
+      final bool moderateAgreement =
+          peakEnergy >= peakFloor * 0.85 &&
+              chromaEnergy >= chromaFloor * 0.78 &&
+              constantQEnergy >= max(0.08, constantQFloor * 0.65);
+
+      if (moderateAgreement) {
+        matches.add(stringIndex);
+      }
       continue;
     }
 
-    final bool moderateAgreement =
-        peakEnergy >= peakFloor * 0.85 &&
-            chromaEnergy >= chromaFloor * 0.78 &&
-            constantQEnergy >= max(0.08, constantQFloor * 0.65);
-
-    if (moderateAgreement) {
-      matches.add(stringIndex);
+    if (allowChromaOnlyMatches && chromaStrong && constantQStrong) {
+      final bool chromaAgreement = blendedScore >= 0.63 &&
+          chromaEnergy >= chromaFloor * 0.92 &&
+          constantQEnergy >= max(0.1, constantQFloor * 0.85);
+      if (chromaAgreement) {
+        matches.add(stringIndex);
+      }
     }
   }
 
