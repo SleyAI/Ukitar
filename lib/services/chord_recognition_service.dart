@@ -650,13 +650,25 @@ class _MelSpectrogramAccumulator {
   }
 }
 
+const Map<String, String> _ukuleleLabelToChordId = <String, String>{
+  'A_major': 'a-major',
+  'A_minor': 'a-minor',
+  'C': 'c-major',
+  'D_7': 'd7',
+  'D_major': 'd-major',
+  'D_minor': 'd-minor',
+  'E_7': 'e7',
+  'F': 'f-major',
+  'G': 'g-major',
+};
+
 class UkuleleChordPrediction {
   UkuleleChordPrediction({
     required this.index,
     required this.label,
     required this.confidence,
     required this.probabilities,
-  }) : mappedChordId = _labelToChordId[label];
+  }) : mappedChordId = _ukuleleLabelToChordId[label];
 
   final int index;
   final String label;
@@ -681,26 +693,19 @@ class UkuleleChordClassifier {
     'G',
   ];
 
-  static const Map<String, String> _labelToChordId = <String, String>{
-    'A_major': 'a-major',
-    'A_minor': 'a-minor',
-    'C': 'c-major',
-    'D_7': 'd7',
-    'D_major': 'd-major',
-    'D_minor': 'd-minor',
-    'E_7': 'e7',
-    'F': 'f-major',
-    'G': 'g-major',
-  };
-
   final dynamic _model;
 
   static Future<UkuleleChordClassifier?> load() async {
     try {
-      final dynamic model = await PytorchLite.loadModel(
-        modelPath:
-            'ai_models/ukulele_chord_detection/mobilenetv2_step150.pt',
-      );
+      final dynamic pytorchLite = PytorchLite();
+      const String path =
+          'ai_models/ukulele_chord_detection/mobilenetv2_step150.pt';
+      dynamic model;
+      try {
+        model = await pytorchLite.loadModel(modelPath: path);
+      } on NoSuchMethodError {
+        model = await pytorchLite.loadModel(path);
+      }
       return UkuleleChordClassifier._(model);
     } catch (error, stackTrace) {
       debugPrint('Failed to initialise TorchScript model: $error');
