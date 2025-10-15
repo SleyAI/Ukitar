@@ -28,7 +28,7 @@ class PracticeScreen extends StatelessWidget {
 
     return ChangeNotifierProvider<PracticeViewModel>(
       create: (_) => PracticeViewModel(
-        ChordRecognitionService(),
+        ChordRecognitionService(instrument: instrument),
         instrument,
         progressRepository: progressRepository,
       ),
