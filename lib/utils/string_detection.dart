@@ -18,6 +18,16 @@ Set<int> identifyChordStringMatches(
     return <int>{};
   }
 
+  final Map<int, List<int>> pitchClassToStrings = <int, List<int>>{};
+  for (final int stringIndex in requiredStrings) {
+    final int pitchClass = chord.notes[stringIndex].pitchClass;
+    pitchClassToStrings.putIfAbsent(pitchClass, () => <int>[]).add(stringIndex);
+  }
+  final Set<int> ambiguousPitchClasses = pitchClassToStrings.entries
+      .where((MapEntry<int, List<int>> entry) => entry.value.length > 1)
+      .map((MapEntry<int, List<int>> entry) => entry.key)
+      .toSet();
+
   final Map<int, double> peakEvidence = <int, double>{};
   double strongestPeakEvidence = 0;
   double strongestPeakConstantQ = 0;
@@ -83,6 +93,8 @@ Set<int> identifyChordStringMatches(
         _valueForPitchClass(frame.constantQChroma, pitchClass);
     final double peakEnergy = peakEvidence[stringIndex] ?? 0;
 
+    final bool pitchClassAmbiguous = ambiguousPitchClasses.contains(pitchClass);
+
     final bool chromaStrong = chromaEnergy >= chromaFloor;
     final bool constantQStrong = constantQEnergy >= constantQFloor ||
         (strongestPeakConstantQ > 0 &&
@@ -115,7 +127,10 @@ Set<int> identifyChordStringMatches(
       continue;
     }
 
-    if (allowChromaOnlyMatches && chromaStrong && constantQStrong) {
+    if (allowChromaOnlyMatches &&
+        chromaStrong &&
+        constantQStrong &&
+        !pitchClassAmbiguous) {
       final bool chromaAgreement = blendedScore >= 0.63 &&
           chromaEnergy >= chromaFloor * 0.92 &&
           constantQEnergy >= max(0.1, constantQFloor * 0.85);
