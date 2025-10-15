@@ -121,7 +121,7 @@ class ChordRecognitionService {
     _isClassifierLoading = true;
     try {
       _ukuleleClassifier = await UkuleleChordClassifier.load();
-    } catch (Object error, StackTrace stackTrace) {
+    } catch (error, stackTrace) {
       debugPrint('Failed to load ukulele chord classifier: $error');
       debugPrint('$stackTrace');
     } finally {
@@ -146,7 +146,7 @@ class ChordRecognitionService {
       if (classifier != null) {
         try {
           prediction = await classifier.predict(melInput);
-        } catch (Object error, StackTrace stackTrace) {
+        } catch (error, stackTrace) {
           debugPrint('Chord classifier inference failed: $error');
           debugPrint('$stackTrace');
         }
@@ -702,7 +702,7 @@ class UkuleleChordClassifier {
             'ai_models/ukulele_chord_detection/mobilenetv2_step150.pt',
       );
       return UkuleleChordClassifier._(model);
-    } catch (Object error, StackTrace stackTrace) {
+    } catch (error, stackTrace) {
       debugPrint('Failed to initialise TorchScript model: $error');
       debugPrint('$stackTrace');
       return null;
@@ -722,7 +722,7 @@ class UkuleleChordClassifier {
     } catch (_) {
       try {
         rawOutput = await _model.forward(tensor);
-      } catch (Object error, StackTrace stackTrace) {
+      } catch (error, stackTrace) {
         debugPrint('TorchScript inference error: $error');
         debugPrint('$stackTrace');
         return null;
