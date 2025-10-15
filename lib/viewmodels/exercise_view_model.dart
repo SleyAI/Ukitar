@@ -10,6 +10,7 @@ import '../services/chord_recognition_service.dart';
 import '../services/practice_progress_repository.dart';
 import '../utils/chord_match_tracker.dart';
 import '../utils/string_detection.dart';
+import '../utils/ukulele_prediction_confidence.dart';
 
 class ExerciseViewModel extends ChangeNotifier {
   ExerciseViewModel(
@@ -42,6 +43,10 @@ class ExerciseViewModel extends ChangeNotifier {
   static const Duration _attemptTimeout = Duration(milliseconds: 1500);
   static const Duration _nextChordDelay = Duration(seconds: 2);
   static const double _successRatio = 0.8;
+  static const Duration _ukuleleRecognitionCooldown =
+      Duration(milliseconds: 750);
+  static const double _ukuleleConfidenceThreshold = 0.55;
+  static const double _ukuleleMinimumEnergy = 0.2;
 
   final ChordMatchTracker _matchTracker = ChordMatchTracker(
     matchWindow: _attemptTimeout,
@@ -63,6 +68,7 @@ class ExerciseViewModel extends ChangeNotifier {
 
   Timer? _attemptTimer;
   bool _disposed = false;
+  DateTime? _lastUkuleleChordMatch;
 
   Future<void> _initialize() async {
     final int unlockedCount = _normalizeUnlocked(
@@ -97,6 +103,7 @@ class ExerciseViewModel extends ChangeNotifier {
     statusMessage = 'Listening... Play the ${currentChord.name} chord.';
     showOpenSettingsButton = false;
     _matchTracker.reset();
+    _lastUkuleleChordMatch = null;
     notifyListeners();
 
     try {
@@ -119,6 +126,7 @@ class ExerciseViewModel extends ChangeNotifier {
     isListening = false;
     _attemptTimer?.cancel();
     _attemptTimer = null;
+    _lastUkuleleChordMatch = null;
 
     if (!silent &&
         lastAttemptSuccessful == null &&
@@ -141,6 +149,7 @@ class ExerciseViewModel extends ChangeNotifier {
     statusMessage =
         'Ready when you are. Press "Start Listening" and strum ${currentChord.name}.';
     _matchTracker.reset();
+    _lastUkuleleChordMatch = null;
     notifyListeners();
   }
 
@@ -198,6 +207,7 @@ class ExerciseViewModel extends ChangeNotifier {
     isChordPatternVisible = false;
     statusMessage =
         'Try strumming ${currentChord.name}. Press "Start Listening" when ready.';
+    _lastUkuleleChordMatch = null;
 
     notifyListeners();
   }
@@ -209,13 +219,8 @@ class ExerciseViewModel extends ChangeNotifier {
 
     final Chord chord = currentChord;
     if (instrument == InstrumentType.ukulele) {
-      final String? predictedChordId = frame.predictedChordId;
-      final double confidence = frame.predictedConfidence ?? 0;
-      if (predictedChordId != null &&
-          predictedChordId != chord.id &&
-          confidence >= 0.4) {
-        return;
-      }
+      _handleUkuleleChordDetection(chord, frame);
+      return;
     }
     double chromaPeak = 0;
     for (final double value in frame.chroma) {
@@ -261,6 +266,32 @@ class ExerciseViewModel extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  void _handleUkuleleChordDetection(Chord chord, ChordDetectionFrame frame) {
+    final String? predictedChordId = frame.predictedChordId;
+    if (frame.energy < _ukuleleMinimumEnergy ||
+        predictedChordId == null ||
+        predictedChordId != chord.id ||
+        !isConfidentUkulelePrediction(
+          frame,
+          highConfidenceThreshold: _ukuleleConfidenceThreshold,
+        )) {
+      return;
+    }
+
+    final DateTime now = DateTime.now();
+    if (_lastUkuleleChordMatch != null &&
+        now.difference(_lastUkuleleChordMatch!) < _ukuleleRecognitionCooldown) {
+      return;
+    }
+    _lastUkuleleChordMatch = now;
+
+    _attemptTimer?.cancel();
+    _attemptTimer = null;
+    _matchTracker.reset();
+
+    unawaited(_registerSuccessfulAttempt());
   }
 
   void _restartAttemptTimer() {
