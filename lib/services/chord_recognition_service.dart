@@ -301,9 +301,23 @@ class ChordRecognitionService {
             inputAmplitude != 0)
         ? inputAmplitude.abs()
         : null;
-    final double? baseMagnitude = amplitude != null
-        ? max(amplitude, minimumComponentMagnitude)
-        : null;
+
+    const double syntheticHarmonicGain = 12.0;
+    double? baseMagnitude;
+    if (amplitude != null) {
+      final double overThreshold = amplitude - minimumInputAmplitude;
+      if (overThreshold > 0) {
+        final double scaled = overThreshold * syntheticHarmonicGain;
+        baseMagnitude = scaled.clamp(
+          minimumComponentMagnitude,
+          minimumComponentMagnitude * syntheticHarmonicGain,
+        );
+      } else {
+        baseMagnitude = minimumComponentMagnitude;
+      }
+    } else {
+      baseMagnitude = 1.0;
+    }
     if (baseMagnitude != null &&
         fundamental != null &&
         fundamental > 20 &&
