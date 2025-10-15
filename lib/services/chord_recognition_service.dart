@@ -699,7 +699,7 @@ class UkuleleChordClassifier {
     try {
       final dynamic pytorchLite = PytorchLite();
       const String path =
-          'ai_models/ukulele_chord_detection/mobilenetv2_step150.pt';
+          'ai_models/ukulele_chord_detection/mobilenetv2_step240.pt';
       dynamic model;
       try {
         model = await pytorchLite.loadModel(modelPath: path);

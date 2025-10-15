@@ -37,7 +37,7 @@ dependencies:
   # Audio / pitch detection
   flutter_fft: ^1.0.2+6
   permission_handler: ^11.3.1
-  pytorch_lite: ^1.1.3
+  pytorch_lite: ^4.3.2
   url_launcher: ^6.3.0
   shared_preferences: ^2.3.2
 
@@ -72,7 +72,7 @@ flutter:
     - assets/images/alissa.png
     - assets/icons/guitar.png
     - assets/icons/ukulele.png
-    - ai_models/ukulele_chord_detection/mobilenetv2_step150.pt
+    - ai_models/ukulele_chord_detection/mobilenetv2_step240.pt
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
